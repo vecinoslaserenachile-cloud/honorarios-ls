@@ -5,159 +5,105 @@ from PIL import Image
 import io
 from docx.shared import Mm
 
-# --- CONFIGURACIÓN DE LA PÁGINA ---
+# --- CONFIGURACIÓN ---
 st.set_page_config(page_title="Honorarios LS", page_icon="📝", layout="centered")
+st.markdown("""<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>""", unsafe_allow_html=True)
 
-# Ocultar elementos de la interfaz de Streamlit para que se vea más limpio
-hide_menu_style = """
-        <style>
-        #MainMenu {visibility: hidden;}
-        footer {visibility: hidden;}
-        header {visibility: hidden;}
-        </style>
-        """
-st.markdown(hide_menu_style, unsafe_allow_html=True)
-
-# --- TÍTULO Y ENCABEZADO ---
 st.title("Generador de Informes 📝")
 st.markdown("**Ilustre Municipalidad de La Serena**")
-st.info("Complete los datos, firme digitalmente y descargue su informe mensual estandarizado.")
 
 # --- 1. DATOS DEL FUNCIONARIO ---
-with st.expander("👤 Paso 1: Datos Personales y Contrato", expanded=True):
-    col1, col2 = st.columns(2)
-    nombre = col1.text_input("Nombre Completo", placeholder="Ej: JUAN PÉREZ", key="nombre")
-    rut = col2.text_input("RUT", placeholder="12.345.678-9", key="rut")
-    direccion = col1.text_input("Dirección / Unidad", "Dirección de Alcaldía")
-    programa = col2.text_input("Nombre del Programa", "COMUNICACIÓN ESTRATÉGICA...")
+with st.expander("👤 Paso 1: Datos del Prestador", expanded=True):
+    nombre = st.text_input("Nombre Completo Prestador", placeholder="Ej: RODRIGO GODOY", key="nombre")
     
-    # Cálculo de honorarios 2026 (Tasa 15.25%)
-    monto_bruto = st.number_input("Monto Bruto ($)", value=2000000, step=50000)
+    col_a, col_b = st.columns(2)
+    direccion = col_a.text_input("Dirección Municipal", "Dirección de Alcaldía")
+    depto = col_b.text_input("Departamento / Sección", "Depto. Comunicaciones Estratégicas")
+    
+    # Agregamos este campo que SÍ está en la foto original
+    jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
+
+# --- 2. DATOS FINANCIEROS Y PERIODO ---
+with st.expander("💰 Paso 2: Contrato y Periodo", expanded=True):
+    c1, c2 = st.columns(2)
+    mes = c1.selectbox("Mes del Informe", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"])
+    anio = c2.number_input("Año", value=2026)
+    
+    st.divider()
+    
+    c3, c4 = st.columns(2)
+    monto_bruto = c3.number_input("Monto Bruto Contrato ($)", value=2000000, step=50000)
+    n_boleta = c4.text_input("Nº Boleta Honorarios")
+
+    # Cálculo visual (no va al word, solo para el usuario)
     retencion = int(monto_bruto * 0.1525)
     liquido = int(monto_bruto - retencion)
-    st.caption(f"💰 **Detalle Pago:** Bruto: ${monto_bruto:,.0f} | Retención (15.25%): ${retencion:,.0f} | Líquido: ${liquido:,.0f}")
-
-# --- 2. PERIODO ---
-with st.expander("📅 Paso 2: Periodo a Informar", expanded=True):
-    c1, c2, c3 = st.columns(3)
-    mes = c1.selectbox("Mes", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"])
-    anio = c2.number_input("Año", value=2026)
-    boleta = c3.text_input("Nº Boleta SII")
+    st.caption(f"ℹ️ Líquido a recibir aprox: ${liquido:,.0f} (Retención: ${retencion:,.0f})")
 
 # --- 3. ACTIVIDADES ---
 st.subheader("📋 Paso 3: Actividades Realizadas")
 
-# Inicializar estado de actividades
 if 'actividades' not in st.session_state:
     st.session_state.actividades = [{"Actividad": "", "Producto": ""}]
 
-def agregar_fila():
-    st.session_state.actividades.append({"Actividad": "", "Producto": ""})
+def agregar(): st.session_state.actividades.append({"Actividad": "", "Producto": ""})
+def quitar(): 
+    if len(st.session_state.actividades) > 1: st.session_state.actividades.pop()
 
-def eliminar_fila():
-    if len(st.session_state.actividades) > 1:
-        st.session_state.actividades.pop()
-
-# Renderizar campos de actividades
 for i, item in enumerate(st.session_state.actividades):
-    col_a, col_b = st.columns(2)
-    st.session_state.actividades[i]["Actividad"] = col_a.text_area(f"Actividad {i+1}", value=item["Actividad"], height=70, key=f"act_{i}")
-    st.session_state.actividades[i]["Producto"] = col_b.text_area(f"Producto {i+1}", value=item["Producto"], height=70, key=f"prod_{i}")
+    c_act, c_prod = st.columns(2)
+    st.session_state.actividades[i]["Actividad"] = c_act.text_area(f"Actividad {i+1}", value=item["Actividad"], height=70, key=f"a{i}")
+    st.session_state.actividades[i]["Producto"] = c_prod.text_area(f"Producto {i+1}", value=item["Producto"], height=70, key=f"p{i}")
 
-c_plus, c_minus = st.columns([1, 4])
-c_plus.button("➕ Agregar Otra", on_click=agregar_fila)
-c_minus.button("🗑️ Quitar Última", on_click=eliminar_fila)
+ca, cb = st.columns([1, 4])
+ca.button("➕ Agregar Fila", on_click=agregar)
+cb.button("🗑️ Quitar Última", on_click=quitar)
 
-# --- 4. FIRMA DIGITAL (HÍBRIDA) ---
+# --- 4. FIRMA ---
 st.markdown("---")
-st.subheader("✍️ Paso 4: Firma Digital")
+st.subheader("✍️ Paso 4: Firma")
+tipo = st.radio("Método:", ["Dibujar en pantalla", "Subir imagen"], horizontal=True)
+img_final = None
 
-tipo_firma = st.radio("Método de firma:", ["Dibujar en pantalla", "Subir imagen"], horizontal=True)
-imagen_final = None
-
-if tipo_firma == "Dibujar en pantalla":
-    st.caption("Firme en el recuadro blanco usando su dedo (móvil) o mouse (PC):")
-    # Canvas para dibujar
-    canvas_result = st_canvas(
-        stroke_width=2,
-        stroke_color="#000000",
-        background_color="#ffffff",
-        height=150,
-        width=400,
-        drawing_mode="freedraw",
-        key="canvas"
-    )
-    # Procesar el dibujo si existe
-    if canvas_result.image_data is not None:
-        imagen_final = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
+if tipo == "Dibujar en pantalla":
+    canvas = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, drawing_mode="freedraw", key="canvas")
+    if canvas.image_data is not None: img_final = Image.fromarray(canvas.image_data.astype('uint8'), 'RGBA')
 else:
-    # Subir archivo
-    uploaded = st.file_uploader("Suba una foto de su firma (PNG/JPG)", type=["png", "jpg", "jpeg"])
-    if uploaded:
-        imagen_final = Image.open(uploaded)
-        st.image(imagen_final, caption="Vista previa firma", width=200)
+    up = st.file_uploader("Subir firma", type=["png", "jpg"])
+    if up: img_final = Image.open(up)
 
-# --- GENERACIÓN DEL DOCUMENTO ---
-st.markdown("---")
-btn_generar = st.button("🚀 GENERAR INFORME OFICIAL", type="primary", use_container_width=True)
-
-if btn_generar:
-    # Validaciones
-    if not nombre or not rut:
-        st.error("⚠️ Por favor complete su Nombre y RUT.")
-    # Validar firma en modo dibujo (si no ha dibujado nada)
-    elif tipo_firma == "Dibujar en pantalla" and (canvas_result.json_data is None or len(canvas_result.json_data["objects"]) == 0):
-         st.error("⚠️ Por favor dibuje su firma.")
-    elif tipo_firma == "Subir imagen" and imagen_final is None:
-         st.error("⚠️ Por favor suba la imagen de su firma.")
+# --- GENERAR ---
+if st.button("🚀 GENERAR INFORME", type="primary", use_container_width=True):
+    if not nombre:
+        st.error("⚠️ Falta el Nombre.")
+    elif tipo == "Dibujar en pantalla" and (canvas.json_data is None or len(canvas.json_data["objects"]) == 0):
+        st.error("⚠️ Falta la Firma.")
     else:
-        try:
-            # Preparar imagen de firma para Word (en memoria)
-            # Recortar espacios vacíos de la firma (opcional pero estético)
-            if imagen_final:
-                bbox = imagen_final.getbbox()
-                if bbox:
-                    imagen_final = imagen_final.crop(bbox)
-                
-                img_byte_arr = io.BytesIO()
-                imagen_final.save(img_byte_arr, format='PNG')
-                img_byte_arr.seek(0)
-
-            # Cargar Plantilla
-            # IMPORTANTE: El archivo debe llamarse exactamente así en el GitHub
-            doc = DocxTemplate("plantilla_base.docx")
-
-            # Crear Contexto (Diccionario de datos para reemplazar en el Word)
-            context = {
-                'nombre': nombre.upper(),
-                'rut': rut,
-                'direccion': direccion,
-                'programa': programa,
-                'mes': mes.upper(),
-                'anio': anio,
-                'monto': f"${monto_bruto:,.0f}".replace(",", "."), # Formato Chileno con puntos
-                'boleta': boleta,
-                'actividades': st.session_state.actividades, # La lista de la tabla
-                'firma': InlineImage(doc, img_byte_arr, height=Mm(20)) # Altura fija de 2cm para que no se deforme
-            }
-
-            # Renderizar
-            doc.render(context)
+        # Preparar firma
+        if img_final:
+            bbox = img_final.getbbox()
+            if bbox: img_final = img_final.crop(bbox)
+            byte_io = io.BytesIO()
+            img_final.save(byte_io, format='PNG')
+            byte_io.seek(0)
             
-            # Guardar en buffer de memoria
-            bio = io.BytesIO()
-            doc.save(bio)
-            bio.seek(0)
-
-            # Botón de Descarga
-            st.success("✅ ¡Informe generado correctamente!")
-            st.download_button(
-                label="📥 DESCARGAR INFORME (.DOCX)",
-                data=bio,
-                file_name=f"Informe_{mes}_{nombre.split()[0]}.docx",
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
-
-        except Exception as e:
-            st.error(f"Error al generar: {e}")
-            st.warning("Asegúrate de que 'plantilla_base.docx' esté subido en el repositorio de GitHub.")
+        doc = DocxTemplate("plantilla_base.docx")
+        context = {
+            'nombre': nombre.upper(),
+            'direccion': direccion,
+            'depto': depto,           # Nuevo campo
+            'jornada': jornada,       # Nuevo campo
+            'mes': mes.upper(),
+            'anio': anio,
+            'monto': f"${monto_bruto:,.0f}".replace(",", "."),
+            'boleta': n_boleta,
+            'actividades': st.session_state.actividades,
+            'firma': InlineImage(doc, byte_io, height=Mm(20))
+        }
+        doc.render(context)
+        
+        bio = io.BytesIO()
+        doc.save(bio)
+        bio.seek(0)
+        
+        st.download_button("📥 DESCARGAR", bio, f"Informe_{mes}_{nombre.split()[0]}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
