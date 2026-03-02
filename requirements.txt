@@ -1,0 +1,5 @@
+streamlit
+docxtpl
+streamlit-drawable-canvas
+Pillow
+pandas
