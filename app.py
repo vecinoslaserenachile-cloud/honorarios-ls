@@ -19,26 +19,32 @@ with st.expander("👤 Paso 1: Datos del Prestador", expanded=True):
     col_a, col_b = st.columns(2)
     direccion = col_a.text_input("Dirección Municipal", "Dirección de Alcaldía")
     depto = col_b.text_input("Departamento / Sección", "Depto. Comunicaciones Estratégicas")
-    
-    # Agregamos este campo que SÍ está en la foto original
     jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
 
-# --- 2. DATOS FINANCIEROS Y PERIODO ---
-with st.expander("💰 Paso 2: Contrato y Periodo", expanded=True):
+# --- 2. DATOS FINANCIEROS (CON CÁLCULO 2026) ---
+with st.expander("💰 Paso 2: Contrato y Boleta", expanded=True):
     c1, c2 = st.columns(2)
-    mes = c1.selectbox("Mes del Informe", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"])
+    mes = c1.selectbox("Mes del Informe", ["Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"])
     anio = c2.number_input("Año", value=2026)
     
-    st.divider()
+    st.markdown("---")
     
     c3, c4 = st.columns(2)
+    # El contrato dice el Bruto (Total)
     monto_bruto = c3.number_input("Monto Bruto Contrato ($)", value=2000000, step=50000)
     n_boleta = c4.text_input("Nº Boleta Honorarios")
 
-    # Cálculo visual (no va al word, solo para el usuario)
+    # --- CÁLCULORA DE BOLSILLO (Solo informativo) ---
+    # Tasa 2026 = 15.25%
     retencion = int(monto_bruto * 0.1525)
     liquido = int(monto_bruto - retencion)
-    st.caption(f"ℹ️ Líquido a recibir aprox: ${liquido:,.0f} (Retención: ${retencion:,.0f})")
+    
+    st.info(f"""
+    📊 **Simulación de Pago (2026):**
+    Tu boleta es por: **${monto_bruto:,.0f}** (Bruto)
+    El Municipio retiene: **${retencion:,.0f}** (15.25% Impuesto)
+    Tu recibirás: **${liquido:,.0f}** (Líquido)
+    """)
 
 # --- 3. ACTIVIDADES ---
 st.subheader("📋 Paso 3: Actividades Realizadas")
@@ -79,7 +85,6 @@ if st.button("🚀 GENERAR INFORME", type="primary", use_container_width=True):
     elif tipo == "Dibujar en pantalla" and (canvas.json_data is None or len(canvas.json_data["objects"]) == 0):
         st.error("⚠️ Falta la Firma.")
     else:
-        # Preparar firma
         if img_final:
             bbox = img_final.getbbox()
             if bbox: img_final = img_final.crop(bbox)
@@ -88,14 +93,18 @@ if st.button("🚀 GENERAR INFORME", type="primary", use_container_width=True):
             byte_io.seek(0)
             
         doc = DocxTemplate("plantilla_base.docx")
+        
+        # AQUÍ ESTÁ LA LÓGICA DEL WORD:
+        # Repetimos 'monto_bruto' en ambos campos porque no hubo descuentos.
         context = {
             'nombre': nombre.upper(),
             'direccion': direccion,
-            'depto': depto,           # Nuevo campo
-            'jornada': jornada,       # Nuevo campo
+            'depto': depto,
+            'jornada': jornada,
             'mes': mes.upper(),
             'anio': anio,
-            'monto': f"${monto_bruto:,.0f}".replace(",", "."),
+            'monto': f"${monto_bruto:,.0f}".replace(",", "."),       # Monto Bruto Contrato
+            'monto_boleta': f"${monto_bruto:,.0f}".replace(",", "."),# Monto Boleta (Igual al Bruto)
             'boleta': n_boleta,
             'actividades': st.session_state.actividades,
             'firma': InlineImage(doc, byte_io, height=Mm(20))
