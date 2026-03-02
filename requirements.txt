@@ -3,3 +3,4 @@ docxtpl
 streamlit-drawable-canvas
 Pillow
 pandas
+fpdf2
