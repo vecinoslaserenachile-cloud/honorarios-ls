@@ -8,6 +8,7 @@ import sqlite3
 import pandas as pd
 import json
 import base64
+import textwrap  # <--- NUEVO: Para blindar textos súper largos
 from docx.shared import Mm
 from fpdf import FPDF
 
@@ -66,7 +67,7 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF ---
+# --- GENERADOR DE PDF (BLINDADO) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
@@ -82,8 +83,12 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf.set_font("Arial", "B", 11)
     pdf.cell(0, 10, "Actividades Realizadas:", ln=True)
     pdf.set_font("Arial", "", 10)
+    
     for act in ctx['actividades']:
-        pdf.multi_cell(0, 5, f"- {act['Actividad']}: {act['Producto']}")
+        texto_crudo = f"- {act['Actividad']}: {act['Producto']}"
+        # textwrap obliga a cortar líneas cada 95 caracteres. Adiós error de teclado aplastado.
+        texto_seguro = textwrap.fill(texto_crudo, width=95) 
+        pdf.multi_cell(0, 5, texto_seguro)
     
     pdf.ln(10)
     y_firmas = pdf.get_y()
@@ -107,13 +112,9 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
 # --- CABECERA COMÚN (LOGOS) ---
 def mostrar_cabecera():
     c1, c2, c3 = st.columns([1, 4, 1])
-    # Logo Municipalidad
     c1.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
-    
     c2.markdown("<h2 style='text-align: center; color: #2C3E50;'>Ilustre Municipalidad de La Serena</h2>", unsafe_allow_html=True)
     c2.markdown("<p style='text-align: center;'>Plataforma Oficial de Autogestión de Honorarios</p>", unsafe_allow_html=True)
-    
-    # Logo Innovación (REEMPLAZA ESTA URL POR LA DE TU LOGO DE INNOVACIÓN)
     c3.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True) 
     st.divider()
 
@@ -127,11 +128,8 @@ def modulo_prestador():
     with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
         nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
         col_a, col_b = st.columns(2)
-        
-        # Variables de estructura
         recinto = col_a.selectbox("Dirección Municipal o Recinto", unidades_municipales)
         area = col_b.text_input("Departamento, Área o Unidad Específica", placeholder="Ej: Oficina de Partes")
-        
         jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
 
     with st.expander("💰 Paso 2: Periodo y Montos", expanded=True):
@@ -251,6 +249,7 @@ def modulo_jefatura():
             st.warning("El informe ha sido rechazado.")
             st.rerun()
 
+
 # ==========================================
 # MÓDULO 3: FINANZAS (CONTROL FINAL)
 # ==========================================
@@ -259,7 +258,6 @@ def modulo_finanzas():
     st.title("Portal de Finanzas 🏛️")
     st.markdown("### Control Administrativo y Aprobación de Pago")
     
-    # Finanzas ve todos los informes visados a nivel comunal
     df = pd.read_sql_query("SELECT id, nombre, direccion as recinto, mes, monto, estado FROM informes WHERE estado='🟡 Pendiente Finanzas'", conn)
     
     if df.empty:
@@ -269,68 +267,4 @@ def modulo_finanzas():
         st.divider()
         
         st.subheader("Gestión de Informe Seleccionado")
-        id_selec = st.selectbox("Seleccione el ID del informe a procesar:", df['id'].tolist())
-        
-        c = conn.cursor()
-        c.execute("SELECT * FROM informes WHERE id=?", (id_selec,))
-        row = c.fetchone()
-        columnas = [description[0] for description in c.description]
-        datos = dict(zip(columnas, row))
-        
-        liquido = int(datos['monto'] * 0.8475)
-        st.write(f"**Funcionario:** {datos['nombre']} | **Boleta SII:** {datos['n_boleta']} | **Líquido a Pagar:** ${liquido:,.0f}")
-        
-        # --- PRE-GENERAR DOCUMENTOS PARA LA DESCARGA EN MEMORIA ---
-        img_prestador_io = base64_to_bytesio(datos['firma_prestador_b64'])
-        img_jefatura_io = base64_to_bytesio(datos['firma_jefatura_b64'])
-        
-        context = {
-            'nombre': datos['nombre'], 'direccion': datos['direccion'], 'depto': datos['depto'],
-            'jornada': datos['jornada'], 'mes': datos['mes'], 'anio': datos['anio'],
-            'monto': f"${datos['monto']:,.0f}",
-            'monto_boleta': f"${datos['monto']:,.0f}",
-            'boleta': datos['n_boleta'], 'actividades': json.loads(datos['actividades_json']),
-            'descuentos': "$0"
-        }
-        
-        # Generar PDF (Evidencia)
-        img_prestador_io.seek(0)
-        img_jefatura_io.seek(0)
-        pdf_bytes = generar_pdf(context, img_prestador_io, img_jefatura_io)
-        
-        st.markdown("### Acciones Disponibles")
-        col_desc, col_hist, col_pago = st.columns(3)
-        
-        # ACCIÓN 1: Descargar
-        with col_desc:
-            st.download_button("📥 1. Descargar Evidencia (PDF)", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
-            
-        # ACCIÓN 2: Archivar en Historial
-        with col_hist:
-            if st.button("📁 2. Guardar en Historial Funcionario", use_container_width=True):
-                c.execute("UPDATE informes SET estado='📁 Archivado en Historial' WHERE id=?", (id_selec,))
-                conn.commit()
-                st.success("✅ Documento digitalizado y enlazado al expediente del funcionario.")
-                st.rerun()
-                
-        # ACCIÓN 3: Disparar Pago (El Visto Bueno final)
-        with col_pago:
-            if st.button("💸 3. Validar y Disparar Pago", type="primary", use_container_width=True):
-                c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_selec,))
-                conn.commit()
-                st.success("✅ ¡Aprobación procesada! Instrucción de pago derivada a Tesorería.")
-                st.balloons()
-                st.rerun()
-
-# --- ENRUTADOR PRINCIPAL ---
-with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=100)
-    st.title("Sistema SAP Honorarios")
-    rol = st.radio("Seleccione su Rol de Acceso:", ["👤 1. Portal Prestador", "🧑‍💼 2. Portal Jefatura (Visación)", "🏛️ 3. Portal Finanzas (Pagos)"])
-
-if rol == "👤 1. Portal Prestador":
-    modulo_prestador()
-elif rol == "🧑‍💼 2. Portal Jefatura (Visación)":
-    modulo_jefatura()
-else:
-    modulo_finanzas()
+        id_selec
