@@ -8,21 +8,22 @@ import sqlite3
 import pandas as pd
 import json
 import base64
-import textwrap  # <--- NUEVO: Para blindar textos súper largos
+import textwrap
 from docx.shared import Mm
 from fpdf import FPDF
 
 # --- 1. CONFIGURACIÓN INICIAL Y BASE DE DATOS ---
 st.set_page_config(page_title="Honorarios La Serena", page_icon="📝", layout="wide")
 
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stApp { background-color: #f0f2f6; }
-    </style>
-    """, unsafe_allow_html=True)
+# (Desactivado temporalmente para evitar la pantalla blanca si hay errores de servidor)
+# st.markdown("""
+#     <style>
+#     #MainMenu {visibility: hidden;}
+#     footer {visibility: hidden;}
+#     header {visibility: hidden;}
+#     .stApp { background-color: #f0f2f6; }
+#     </style>
+#     """, unsafe_allow_html=True)
 
 # Motor SAP: Base de datos local
 def init_db():
@@ -67,7 +68,7 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (BLINDADO) ---
+# --- GENERADOR DE PDF (BLINDADO CONTRA TEXTOS LARGOS) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
@@ -86,7 +87,6 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     
     for act in ctx['actividades']:
         texto_crudo = f"- {act['Actividad']}: {act['Producto']}"
-        # textwrap obliga a cortar líneas cada 95 caracteres. Adiós error de teclado aplastado.
         texto_seguro = textwrap.fill(texto_crudo, width=95) 
         pdf.multi_cell(0, 5, texto_seguro)
     
@@ -191,7 +191,6 @@ def modulo_prestador():
             st.success("✅ ¡Informe enviado exitosamente! Su jefatura ha sido notificada para la visación.")
             st.balloons()
 
-
 # ==========================================
 # MÓDULO 2: JEFATURA (VISACIÓN)
 # ==========================================
@@ -249,7 +248,6 @@ def modulo_jefatura():
             st.warning("El informe ha sido rechazado.")
             st.rerun()
 
-
 # ==========================================
 # MÓDULO 3: FINANZAS (CONTROL FINAL)
 # ==========================================
@@ -267,4 +265,64 @@ def modulo_finanzas():
         st.divider()
         
         st.subheader("Gestión de Informe Seleccionado")
-        id_selec
+        id_selec = st.selectbox("Seleccione el ID del informe a procesar:", df['id'].tolist())
+        
+        c = conn.cursor()
+        c.execute("SELECT * FROM informes WHERE id=?", (id_selec,))
+        row = c.fetchone()
+        columnas = [description[0] for description in c.description]
+        datos = dict(zip(columnas, row))
+        
+        liquido = int(datos['monto'] * 0.8475)
+        st.write(f"**Funcionario:** {datos['nombre']} | **Boleta SII:** {datos['n_boleta']} | **Líquido a Pagar:** ${liquido:,.0f}")
+        
+        # Pre-generar PDF para descarga en memoria
+        img_prestador_io = base64_to_bytesio(datos['firma_prestador_b64'])
+        img_jefatura_io = base64_to_bytesio(datos['firma_jefatura_b64'])
+        
+        context = {
+            'nombre': datos['nombre'], 'direccion': datos['direccion'], 'depto': datos['depto'],
+            'jornada': datos['jornada'], 'mes': datos['mes'], 'anio': datos['anio'],
+            'monto': f"${datos['monto']:,.0f}",
+            'monto_boleta': f"${datos['monto']:,.0f}",
+            'boleta': datos['n_boleta'], 'actividades': json.loads(datos['actividades_json']),
+            'descuentos': "$0"
+        }
+        
+        img_prestador_io.seek(0)
+        img_jefatura_io.seek(0)
+        pdf_bytes = generar_pdf(context, img_prestador_io, img_jefatura_io)
+        
+        st.markdown("### Acciones Disponibles")
+        col_desc, col_hist, col_pago = st.columns(3)
+        
+        with col_desc:
+            st.download_button("📥 1. Descargar Evidencia (PDF)", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
+            
+        with col_hist:
+            if st.button("📁 2. Guardar en Historial Funcionario", use_container_width=True):
+                c.execute("UPDATE informes SET estado='📁 Archivado en Historial' WHERE id=?", (id_selec,))
+                conn.commit()
+                st.success("✅ Documento digitalizado y enlazado al expediente del funcionario.")
+                st.rerun()
+                
+        with col_pago:
+            if st.button("💸 3. Validar y Disparar Pago", type="primary", use_container_width=True):
+                c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_selec,))
+                conn.commit()
+                st.success("✅ ¡Aprobación procesada! Instrucción de pago derivada a Tesorería.")
+                st.balloons()
+                st.rerun()
+
+# --- ENRUTADOR PRINCIPAL ---
+with st.sidebar:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=100)
+    st.title("Sistema SAP Honorarios")
+    rol = st.radio("Seleccione su Rol de Acceso:", ["👤 1. Portal Prestador", "🧑‍💼 2. Portal Jefatura (Visación)", "🏛️ 3. Portal Finanzas (Pagos)"])
+
+if rol == "👤 1. Portal Prestador":
+    modulo_prestador()
+elif rol == "🧑‍💼 2. Portal Jefatura (Visación)":
+    modulo_jefatura()
+else:
+    modulo_finanzas()
