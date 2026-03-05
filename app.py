@@ -10,6 +10,7 @@ import json
 import base64
 import re
 import time
+import os
 from docx.shared import Mm
 from fpdf import FPDF
 
@@ -59,17 +60,24 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (BLINDAJE ABSOLUTO CONTRA TEXTOS CORRUPTOS) ---
+# --- GENERADOR DE PDF (BLINDAJE ABSOLUTO) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "INFORME MENSUAL DE ACTIVIDADES", ln=True, align='C')
     pdf.set_font("Arial", "", 10)
-    pdf.cell(0, 7, f"Nombre: {ctx['nombre']}", ln=True)
-    pdf.cell(0, 7, f"Recinto/Dirección: {ctx['direccion']}", ln=True)
-    pdf.cell(0, 7, f"Depto/Área: {ctx['depto']}", ln=True)
-    pdf.cell(0, 7, f"Periodo: {ctx['mes']} {ctx['anio']}", ln=True)
+    
+    # Función interna para limpiar emojis y cortar textos infinitos
+    def safe_text(texto):
+        t_limpio = str(texto).encode('latin-1', 'replace').decode('latin-1')
+        t_seguro = re.sub(r'(\S{35})', r'\1 ', t_limpio) # Corta palabras largas cada 35 letras
+        return t_seguro
+
+    pdf.cell(0, 7, safe_text(f"Nombre: {ctx['nombre']}"), ln=True)
+    pdf.cell(0, 7, safe_text(f"Recinto/Dirección: {ctx['direccion']}"), ln=True)
+    pdf.cell(0, 7, safe_text(f"Depto/Área: {ctx['depto']}"), ln=True)
+    pdf.cell(0, 7, safe_text(f"Periodo: {ctx['mes']} {ctx['anio']}"), ln=True)
     pdf.ln(5)
     
     pdf.set_font("Arial", "B", 11)
@@ -77,15 +85,13 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf.set_font("Arial", "", 10)
     
     for act in ctx['actividades']:
-        texto_crudo = f"- {act['Actividad']}: {act['Producto']}"
-        
-        # 1. Filtramos caracteres extraños (emojis) para que FPDF no colapse
-        texto_seguro = texto_crudo.encode('latin-1', 'replace').decode('latin-1')
-        
-        # 2. Cortamos a la fuerza cualquier palabra anormalmente larga (ej: asdfasdfasdf...)
-        texto_seguro = re.sub(r'(\S{60})', r'\1 ', texto_seguro)
-        
-        pdf.multi_cell(0, 5, texto_seguro)
+        texto_actividad = safe_text(f"- {act['Actividad']}: {act['Producto']}")
+        try:
+            # Intentamos escribir la celda multilinea
+            pdf.multi_cell(0, 5, texto_actividad)
+        except Exception:
+            # Si FPDF colapsa igual, escribimos una advertencia genérica y seguimos
+            pdf.multi_cell(0, 5, "- (Actividad contiene caracteres no soportados para visualización PDF)")
     
     pdf.ln(10)
     y_firmas = pdf.get_y()
@@ -106,26 +112,26 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
             
     return bytes(pdf.output())
 
-# --- CABECERA COMÚN (LOGOS LOCALES Y DISEÑO RESPONSIVO) ---
+# --- CABECERA COMÚN (LOGOS Y RESPONSIVE) ---
 def mostrar_cabecera():
     st.markdown("""
         <style>
-        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 8px 0; border-radius: 8px; margin-top: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .ticker { display: inline-block; white-space: nowrap; animation: ticker 25s linear infinite; font-size: clamp(14px, 1.5vw, 16px); font-weight: 500;}
+        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 10px 5px; border-radius: 8px; margin-top: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; font-size: clamp(13px, 1.5vw, 16px); font-weight: 500;}
         @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
         /* Títulos Responsivos */
-        .titulo-muni { text-align: center; color: #2C3E50; margin-bottom: 0; font-size: clamp(22px, 3vw, 32px); font-weight: bold; }
-        .subtitulo-muni { text-align: center; color: #7f8c8d; font-size: clamp(14px, 2vw, 18px); margin-bottom: 10px; }
+        .titulo-muni { text-align: center; color: #2C3E50; margin-bottom: 0; font-size: clamp(20px, 4vw, 32px); font-weight: bold; line-height: 1.2; }
+        .subtitulo-muni { text-align: center; color: #7f8c8d; font-size: clamp(14px, 2.5vw, 18px); margin-bottom: 15px; margin-top: 5px; }
         </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1.5, 5, 1.5], gap="small")
+    c1, c2, c3 = st.columns([1.5, 5, 1.5])
     
     with c1:
-        # Intenta usar el logo local de tu GitHub, si falla, usa el de internet.
-        try:
+        # Validación de archivos locales para que no se rompan las imágenes
+        if os.path.exists("logo_muni.png"):
             st.image("logo_muni.png", use_container_width=True)
-        except Exception:
+        else:
             st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
             
     with c2:
@@ -134,25 +140,25 @@ def mostrar_cabecera():
         st.markdown("""
             <div class="ticker-wrap">
                 <div class="ticker">
-                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado aquí ahorra <b>$3.638 CLP</b>, optimiza <b>40 minutos</b> operativos y evita la impresión de <b>5 hojas de papel</b>, reduciendo nuestra huella de carbono. ¡Gracias por sumar! 🚀
+                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado ahorra <b>$3.638 CLP</b> al municipio, optimiza <b>40 minutos</b> operativos y evita la impresión de <b>5 hojas de papel</b> disminuyendo nuestra huella de carbono. ¡Gracias por sumar! 🚀
                 </div>
             </div>
         """, unsafe_allow_html=True)
         
     with c3:
-        try:
+        if os.path.exists("logo_innovacion.png"):
             st.image("logo_innovacion.png", use_container_width=True)
-        except Exception:
+        else:
             st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True)
 
 # --- MENSAJE DE IMPACTO ---
 def mostrar_mensaje_impacto():
     st.success("""
     ### ¡Acción Completada con Éxito! 🎉
-    **🌟 Tu contribución de hoy:**
-    * 💰 Ahorro de **$3.638 pesos** en costos operativos al Municipio.
-    * ⏱️ Optimización de **40 minutos** de tramitación burocrática.
-    * 🌳 **5 hojas menos** impresas, ahorrando agua y reduciendo la huella de carbono.
+    **🌟 Tu contribución en este momento:**
+    * 💰 Le has ahorrado **$3.638 pesos** en costos operativos al Municipio.
+    * ⏱️ Has optimizado **40 minutos** de tramitación burocrática.
+    * 🌳 Has evitado imprimir **5 hojas**, ahorrando agua y reduciendo nuestra huella de carbono.
     
     *Cambiando el papel por innovación. ¡Gracias por tu compromiso!* 🚀
     """)
@@ -168,7 +174,7 @@ def modulo_prestador():
         st.session_state.prestador_comprobantes = None
 
     if st.session_state.prestador_comprobantes is None:
-        st.header("Generador de Informes 📝")
+        st.subheader("Generador de Informes 📝")
 
         with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
             nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
@@ -207,11 +213,11 @@ def modulo_prestador():
         c_btn2.button("➖ Eliminar Última", on_click=del_act, use_container_width=True)
 
         st.subheader("✍️ Paso 4: Firma Digital")
-        canvas_result = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, drawing_mode="freedraw", key="canvas_prestador")
+        canvas_result = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=350, drawing_mode="freedraw", key="canvas_prestador")
         
         firma_en_blanco = True
         if canvas_result.image_data is not None:
-            if np.sum(canvas_result.image_data) != (150 * 400 * 4 * 255): firma_en_blanco = False
+            if np.sum(canvas_result.image_data) != (150 * 350 * 4 * 255): firma_en_blanco = False
 
         st.divider()
         if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
@@ -260,23 +266,21 @@ def modulo_prestador():
                 
     else:
         mostrar_mensaje_impacto()
-        st.subheader("📥 Descarga tus comprobantes")
-        st.caption("Documentos de respaldo. La copia original ya fue enviada a su Jefatura.")
+        st.markdown("### 📥 Descarga tus comprobantes (Copia enviada a Jefatura)")
         
-        # Columnas responsivas
-        col_w, col_p, col_e = st.columns([1, 1, 1])
+        col_w, col_p, col_e = st.columns(3)
         nombre_base = st.session_state.prestador_comprobantes['nombre_archivo']
         
         with col_w:
-            st.download_button("📥 Descargar Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
+            st.download_button("📥 Descargar Copia Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
         with col_p:
-            st.download_button("📥 Descargar PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
+            st.download_button("📥 Descargar Copia PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
         with col_e:
             enlace_correo = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado a Jefatura."
             st.markdown(f'<a href="{enlace_correo}" target="_blank"><button style="width:100%; padding:0.4rem; background-color:#2C3E50; color:white; border:none; border-radius:5px; cursor:pointer;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
             
         st.divider()
-        if st.button("⬅️ Volver y Generar Nuevo Informe", use_container_width=True):
+        if st.button("⬅️ Generar Nuevo Informe", use_container_width=True):
             st.session_state.prestador_comprobantes = None
             st.rerun()
 
@@ -285,7 +289,7 @@ def modulo_prestador():
 # ==========================================
 def modulo_jefatura():
     mostrar_cabecera()
-    st.header("Bandeja de Jefatura 📥")
+    st.subheader("Bandeja de Jefatura 📥")
     
     mi_unidad = st.selectbox("Filtrar por Dirección o Recinto:", unidades_municipales)
     
@@ -313,11 +317,11 @@ def modulo_jefatura():
                 st.markdown(f"- **{act['Actividad']}**: {act['Producto']}")
                 
         st.write("✍️ **Firma de Jefatura (Visador)**")
-        canvas_jefatura = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=400, drawing_mode="freedraw", key="canvas_jefa")
+        canvas_jefatura = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=350, drawing_mode="freedraw", key="canvas_jefa")
         
         firma_jefa_blanca = True
         if canvas_jefatura.image_data is not None:
-            if np.sum(canvas_jefatura.image_data) != (150 * 400 * 4 * 255): firma_jefa_blanca = False
+            if np.sum(canvas_jefatura.image_data) != (150 * 350 * 4 * 255): firma_jefa_blanca = False
 
         col_apr, col_rech = st.columns(2)
         if col_apr.button("✅ VISAR Y ENVIAR A FINANZAS", type="primary", use_container_width=True):
@@ -344,7 +348,7 @@ def modulo_jefatura():
 # ==========================================
 def modulo_finanzas():
     mostrar_cabecera()
-    st.header("Portal de Finanzas 🏛️")
+    st.subheader("Portal de Finanzas 🏛️")
     
     df = pd.read_sql_query("SELECT id, nombre, direccion as recinto, mes, monto, estado FROM informes WHERE estado='🟡 Pendiente Finanzas'", conn)
     
