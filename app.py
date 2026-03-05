@@ -8,7 +8,7 @@ import sqlite3
 import pandas as pd
 import json
 import base64
-import re
+import textwrap
 import time
 import os
 from docx.shared import Mm
@@ -60,42 +60,59 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (BLINDAJE ABSOLUTO) ---
+# --- GENERADOR DE PDF (BLINDAJE DE TITANIO - CERO MULTI_CELL) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "INFORME MENSUAL DE ACTIVIDADES", ln=True, align='C')
-    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 10, "INFORME MENSUAL DE ACTIVIDADES", ln=1, align='C')
     
-    # Función interna para limpiar emojis y cortar textos infinitos
-    def safe_text(texto):
-        t_limpio = str(texto).encode('latin-1', 'replace').decode('latin-1')
-        t_seguro = re.sub(r'(\S{35})', r'\1 ', t_limpio) # Corta palabras largas cada 35 letras
-        return t_seguro
+    # Motor de escritura línea por línea (A prueba de fallos)
+    def write_line(text, is_bold=False):
+        if is_bold:
+            pdf.set_font("Arial", "B", 10)
+        else:
+            pdf.set_font("Arial", "", 10)
+            
+        # Forzamos la limpieza de caracteres raros que rompen FPDF
+        clean_text = str(text).encode('latin-1', 'replace').decode('latin-1')
+        
+        # Procesamos párrafo por párrafo para respetar los "Enter" del usuario
+        for paragraph in clean_text.split('\n'):
+            if not paragraph.strip():
+                pdf.ln(4)
+                continue
+            # Obligamos a cortar líneas cada 100 caracteres exactos
+            lines = textwrap.wrap(paragraph, width=100, break_long_words=True)
+            for line in lines:
+                pdf.set_x(10) # Volvemos siempre al margen izquierdo
+                pdf.cell(w=0, h=5, txt=line, ln=1)
 
-    pdf.cell(0, 7, safe_text(f"Nombre: {ctx['nombre']}"), ln=True)
-    pdf.cell(0, 7, safe_text(f"Recinto/Dirección: {ctx['direccion']}"), ln=True)
-    pdf.cell(0, 7, safe_text(f"Depto/Área: {ctx['depto']}"), ln=True)
-    pdf.cell(0, 7, safe_text(f"Periodo: {ctx['mes']} {ctx['anio']}"), ln=True)
+    # Imprimimos la cabecera del informe
+    write_line(f"Nombre: {ctx['nombre']}")
+    write_line(f"Recinto/Dirección: {ctx['direccion']}")
+    write_line(f"Depto/Área: {ctx['depto']}")
+    write_line(f"Periodo: {ctx['mes']} {ctx['anio']}")
     pdf.ln(5)
     
     pdf.set_font("Arial", "B", 11)
-    pdf.cell(0, 10, "Actividades Realizadas:", ln=True)
-    pdf.set_font("Arial", "", 10)
+    pdf.cell(0, 10, "Actividades Realizadas:", ln=1)
     
-    for act in ctx['actividades']:
-        texto_actividad = safe_text(f"- {act['Actividad']}: {act['Producto']}")
-        try:
-            # Intentamos escribir la celda multilinea
-            pdf.multi_cell(0, 5, texto_actividad)
-        except Exception:
-            # Si FPDF colapsa igual, escribimos una advertencia genérica y seguimos
-            pdf.multi_cell(0, 5, "- (Actividad contiene caracteres no soportados para visualización PDF)")
+    # Imprimimos las actividades ordenadas
+    for idx, act in enumerate(ctx['actividades']):
+        write_line(f"Actividad {idx+1}: {act['Actividad']}", is_bold=True)
+        write_line(f"Resultado: {act['Producto']}")
+        pdf.ln(3) # Espacio entre actividades
     
-    pdf.ln(10)
+    pdf.ln(8)
     y_firmas = pdf.get_y()
     
+    # Si las actividades llenaron la hoja, pasamos la firma a una hoja nueva
+    if y_firmas > 230:
+        pdf.add_page()
+        y_firmas = pdf.get_y()
+    
+    # Pegamos las firmas
     if img_prestador_io:
         img_p = Image.open(img_prestador_io)
         with io.BytesIO() as temp_p:
@@ -112,7 +129,7 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
             
     return bytes(pdf.output())
 
-# --- CABECERA COMÚN (LOGOS Y RESPONSIVE) ---
+# --- CABECERA COMÚN (LOGOS LOCALES Y DISEÑO RESPONSIVO) ---
 def mostrar_cabecera():
     st.markdown("""
         <style>
@@ -125,10 +142,9 @@ def mostrar_cabecera():
         </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1.5, 5, 1.5])
+    c1, c2, c3 = st.columns([1.5, 5, 1.5], gap="small")
     
     with c1:
-        # Validación de archivos locales para que no se rompan las imágenes
         if os.path.exists("logo_muni.png"):
             st.image("logo_muni.png", use_container_width=True)
         else:
@@ -411,7 +427,11 @@ def modulo_finanzas():
 
 # --- ENRUTADOR PRINCIPAL ---
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=100)
+    if os.path.exists("logo_muni.png"):
+        st.image("logo_muni.png", width=100)
+    else:
+        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=100)
+        
     st.title("Sistema SAP Honorarios")
     rol = st.radio("Seleccione su Rol de Acceso:", ["👤 1. Portal Prestador", "🧑‍💼 2. Portal Jefatura (Visación)", "🏛️ 3. Portal Finanzas (Pagos)"])
 
