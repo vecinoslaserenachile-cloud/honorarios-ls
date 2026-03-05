@@ -8,23 +8,13 @@ import sqlite3
 import pandas as pd
 import json
 import base64
-import textwrap
+import re
 import time
 from docx.shared import Mm
 from fpdf import FPDF
 
 # --- 1. CONFIGURACIÓN INICIAL Y BASE DE DATOS ---
 st.set_page_config(page_title="Honorarios La Serena", page_icon="📝", layout="wide")
-
-# (Oculto temporalmente para ver errores si los hay en el servidor)
-# st.markdown("""
-#     <style>
-#     #MainMenu {visibility: hidden;}
-#     footer {visibility: hidden;}
-#     header {visibility: hidden;}
-#     .stApp { background-color: #f0f2f6; }
-#     </style>
-#     """, unsafe_allow_html=True)
 
 # Motor SAP: Base de datos local
 def init_db():
@@ -69,7 +59,7 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF ---
+# --- GENERADOR DE PDF (BLINDAJE ABSOLUTO CONTRA TEXTOS CORRUPTOS) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
@@ -88,11 +78,14 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     
     for act in ctx['actividades']:
         texto_crudo = f"- {act['Actividad']}: {act['Producto']}"
-        texto_seguro = textwrap.fill(texto_crudo, width=70, break_long_words=True)
-        try:
-            pdf.multi_cell(0, 5, texto_seguro)
-        except Exception:
-            pdf.multi_cell(0, 5, "- (Actividad redactada con caracteres especiales, ver Word)")
+        
+        # 1. Filtramos caracteres extraños (emojis) para que FPDF no colapse
+        texto_seguro = texto_crudo.encode('latin-1', 'replace').decode('latin-1')
+        
+        # 2. Cortamos a la fuerza cualquier palabra anormalmente larga (ej: asdfasdfasdf...)
+        texto_seguro = re.sub(r'(\S{60})', r'\1 ', texto_seguro)
+        
+        pdf.multi_cell(0, 5, texto_seguro)
     
     pdf.ln(10)
     y_firmas = pdf.get_y()
@@ -113,42 +106,53 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
             
     return bytes(pdf.output())
 
-# --- CABECERA COMÚN (LOGOS Y TICKER DE IMPACTO) ---
+# --- CABECERA COMÚN (LOGOS LOCALES Y DISEÑO RESPONSIVO) ---
 def mostrar_cabecera():
-    # CSS para el ticker dinámico (Letrero móvil)
     st.markdown("""
         <style>
-        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 8px 0; border-radius: 8px; margin-top: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .ticker { display: inline-block; white-space: nowrap; animation: ticker 25s linear infinite; font-size: 16px; font-weight: 500;}
+        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 8px 0; border-radius: 8px; margin-top: 10px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 25s linear infinite; font-size: clamp(14px, 1.5vw, 16px); font-weight: 500;}
         @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        /* Títulos Responsivos */
+        .titulo-muni { text-align: center; color: #2C3E50; margin-bottom: 0; font-size: clamp(22px, 3vw, 32px); font-weight: bold; }
+        .subtitulo-muni { text-align: center; color: #7f8c8d; font-size: clamp(14px, 2vw, 18px); margin-bottom: 10px; }
         </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1.5, 5, 1.5])
-    c1.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
+    c1, c2, c3 = st.columns([1.5, 5, 1.5], gap="small")
     
+    with c1:
+        # Intenta usar el logo local de tu GitHub, si falla, usa el de internet.
+        try:
+            st.image("logo_muni.png", use_container_width=True)
+        except Exception:
+            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
+            
     with c2:
-        st.markdown("<h2 style='text-align: center; color: #2C3E50; margin-bottom: 0;'>Ilustre Municipalidad de La Serena</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; font-size: 18px; color: #7f8c8d;'>Plataforma Oficial de Gestión Cero Papel</p>", unsafe_allow_html=True)
-        # El letrero móvil
+        st.markdown("<div class='titulo-muni'>Ilustre Municipalidad de La Serena</div>", unsafe_allow_html=True)
+        st.markdown("<div class='subtitulo-muni'>Plataforma Oficial de Gestión Cero Papel</div>", unsafe_allow_html=True)
         st.markdown("""
             <div class="ticker-wrap">
                 <div class="ticker">
-                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado en esta plataforma ahorra <b>$3.638 CLP</b> al municipio, optimiza <b>40 minutos</b> de tiempo administrativo, y evita la impresión de <b>5 hojas de papel</b> disminuyendo nuestra huella de carbono. ¡Gracias por ser parte del cambio! 🚀
+                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado aquí ahorra <b>$3.638 CLP</b>, optimiza <b>40 minutos</b> operativos y evita la impresión de <b>5 hojas de papel</b>, reduciendo nuestra huella de carbono. ¡Gracias por sumar! 🚀
                 </div>
             </div>
         """, unsafe_allow_html=True)
         
-    c3.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True) 
+    with c3:
+        try:
+            st.image("logo_innovacion.png", use_container_width=True)
+        except Exception:
+            st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True)
 
-# --- MENSAJE DE IMPACTO (REUTILIZABLE) ---
+# --- MENSAJE DE IMPACTO ---
 def mostrar_mensaje_impacto():
     st.success("""
     ### ¡Acción Completada con Éxito! 🎉
-    **🌟 Tu contribución en este momento:**
-    * 💰 Le has ahorrado **$3.638 pesos** en costos operativos al Municipio.
-    * ⏱️ Has optimizado **40 minutos** de tramitación burocrática.
-    * 🌳 Has evitado imprimir **5 hojas**, ahorrando agua y reduciendo nuestra huella de carbono.
+    **🌟 Tu contribución de hoy:**
+    * 💰 Ahorro de **$3.638 pesos** en costos operativos al Municipio.
+    * ⏱️ Optimización de **40 minutos** de tramitación burocrática.
+    * 🌳 **5 hojas menos** impresas, ahorrando agua y reduciendo la huella de carbono.
     
     *Cambiando el papel por innovación. ¡Gracias por tu compromiso!* 🚀
     """)
@@ -164,7 +168,7 @@ def modulo_prestador():
         st.session_state.prestador_comprobantes = None
 
     if st.session_state.prestador_comprobantes is None:
-        st.title("Generador de Informes 📝")
+        st.header("Generador de Informes 📝")
 
         with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
             nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
@@ -256,21 +260,23 @@ def modulo_prestador():
                 
     else:
         mostrar_mensaje_impacto()
-        st.markdown("### 📥 Descarga tus comprobantes (Copia enviada a Jefatura)")
+        st.subheader("📥 Descarga tus comprobantes")
+        st.caption("Documentos de respaldo. La copia original ya fue enviada a su Jefatura.")
         
-        col_w, col_p, col_e = st.columns(3)
+        # Columnas responsivas
+        col_w, col_p, col_e = st.columns([1, 1, 1])
         nombre_base = st.session_state.prestador_comprobantes['nombre_archivo']
         
         with col_w:
-            st.download_button("📥 Descargar Copia Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
+            st.download_button("📥 Descargar Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
         with col_p:
-            st.download_button("📥 Descargar Copia PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
+            st.download_button("📥 Descargar PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
         with col_e:
             enlace_correo = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado a Jefatura."
             st.markdown(f'<a href="{enlace_correo}" target="_blank"><button style="width:100%; padding:0.4rem; background-color:#2C3E50; color:white; border:none; border-radius:5px; cursor:pointer;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
             
         st.divider()
-        if st.button("⬅️ Generar Nuevo Informe", use_container_width=True):
+        if st.button("⬅️ Volver y Generar Nuevo Informe", use_container_width=True):
             st.session_state.prestador_comprobantes = None
             st.rerun()
 
@@ -279,7 +285,7 @@ def modulo_prestador():
 # ==========================================
 def modulo_jefatura():
     mostrar_cabecera()
-    st.title("Bandeja de Jefatura 📥")
+    st.header("Bandeja de Jefatura 📥")
     
     mi_unidad = st.selectbox("Filtrar por Dirección o Recinto:", unidades_municipales)
     
@@ -322,8 +328,8 @@ def modulo_jefatura():
                 c.execute("UPDATE informes SET estado='🟡 Pendiente Finanzas', firma_jefatura_b64=? WHERE id=?", (firma_jefa_b64, id_selec))
                 conn.commit()
                 
-                mostrar_mensaje_impacto() # Muestra el banner y los globos
-                time.sleep(3) # Pausa dramática para que la Jefatura lea su logro antes de recargar
+                mostrar_mensaje_impacto()
+                time.sleep(3)
                 st.rerun()
 
         if col_rech.button("❌ RECHAZAR INFORME", use_container_width=True):
@@ -338,7 +344,7 @@ def modulo_jefatura():
 # ==========================================
 def modulo_finanzas():
     mostrar_cabecera()
-    st.title("Portal de Finanzas 🏛️")
+    st.header("Portal de Finanzas 🏛️")
     
     df = pd.read_sql_query("SELECT id, nombre, direccion as recinto, mes, monto, estado FROM informes WHERE estado='🟡 Pendiente Finanzas'", conn)
     
@@ -377,13 +383,13 @@ def modulo_finanzas():
         pdf_bytes = generar_pdf(context, img_prestador_io, img_jefatura_io)
         
         st.markdown("### Acciones Disponibles")
-        col_desc, col_hist, col_pago = st.columns(3)
+        col_desc, col_hist, col_pago = st.columns([1,1,1])
         
         with col_desc:
-            st.download_button("📥 1. Descargar Evidencia (PDF)", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
+            st.download_button("📥 1. Bajar PDF Final", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
             
         with col_hist:
-            if st.button("📁 2. Guardar en Historial", use_container_width=True):
+            if st.button("📁 2. Archivar Informe", use_container_width=True):
                 c.execute("UPDATE informes SET estado='📁 Archivado en Historial' WHERE id=?", (id_selec,))
                 conn.commit()
                 st.success("✅ Documento digitalizado y enlazado al expediente.")
@@ -391,12 +397,12 @@ def modulo_finanzas():
                 st.rerun()
                 
         with col_pago:
-            if st.button("💸 3. Validar y Disparar Pago", type="primary", use_container_width=True):
+            if st.button("💸 3. Disparar Pago", type="primary", use_container_width=True):
                 c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_selec,))
                 conn.commit()
                 
-                mostrar_mensaje_impacto() # Muestra el banner y los globos a Finanzas
-                time.sleep(3) # Pausa de 3 segundos para celebrar antes de volver a la bandeja
+                mostrar_mensaje_impacto() 
+                time.sleep(3) 
                 st.rerun()
 
 # --- ENRUTADOR PRINCIPAL ---
