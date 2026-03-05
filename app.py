@@ -14,16 +14,17 @@ import os
 from docx.shared import Mm
 from fpdf import FPDF
 
-# --- 1. CONFIGURACIÓN INICIAL Y BASE DE DATOS ---
-st.set_page_config(page_title="Honorarios La Serena", page_icon="📝", layout="wide")
+# --- 1. CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Sistema Honorarios La Serena", page_icon="📝", layout="wide")
 
-# Motor SAP: Base de datos local
+# --- 2. MOTOR DE BASE DE DATOS (ESTRUCTURA CIVIL 2026) ---
 def init_db():
     conn = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS informes
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  nombre TEXT, direccion TEXT, depto TEXT, jornada TEXT,
+                  nombres TEXT, apellido_p TEXT, apellido_m TEXT, rut TEXT,
+                  direccion TEXT, depto TEXT, jornada TEXT,
                   mes TEXT, anio INTEGER, monto INTEGER, n_boleta TEXT,
                   actividades_json TEXT, firma_prestador_b64 TEXT, firma_jefatura_b64 TEXT,
                   estado TEXT, fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
@@ -32,6 +33,7 @@ def init_db():
 
 conn = init_db()
 
+# --- 3. LISTADOS MAESTROS ORGANIZACIONALES ---
 unidades_municipales = [
     "Alcaldía", "Administración Municipal", "Secretaría Municipal", 
     "DIDECO (Dirección de Desarrollo Comunitario)", "DOM (Dirección de Obras Municipales)", 
@@ -46,390 +48,257 @@ unidades_municipales = [
     "Delegación Municipal Rural", "Radio Digital Municipal RDMLS"
 ]
 
-# --- FUNCIONES AUXILIARES DE IMAGEN ---
+departamentos_areas = [
+    "Oficina de Partes", "OIRS (Informaciones)", "Gestión de Personas / RRHH", 
+    "Contabilidad y Presupuesto", "Tesorería Municipal", "Adquisiciones e Inventario", 
+    "Informática y Sistemas", "Relaciones Públicas y Protocolo", "Prensa y Redes Sociales", 
+    "Fomento Productivo / Emprendimiento", "Oficina de la Juventud", "Oficina del Adulto Mayor", 
+    "Oficina de la Mujer / Equidad de Género", "Discapacidad e Inclusión", "Cultura y Patrimonio", 
+    "Deportes y Recreación", "Protección Civil y Emergencias", "Inspección Municipal", 
+    "Gestión Ambiental y Sustentabilidad", "Parques y Jardines", "Alumbrado Público", 
+    "Juzgado de Policía Local", "Producción Audiovisual / RDMLS", "Vivienda y Entorno"
+]
+
+# --- 4. FUNCIONES DE APOYO (IMAGEN Y PDF) ---
 def canvas_to_base64(canvas_data):
     raw_img = Image.fromarray(canvas_data.astype('uint8'), 'RGBA')
     bg = Image.new("RGB", raw_img.size, (255, 255, 255))
     bg.paste(raw_img, mask=raw_img.split()[3])
-    bbox = bg.getbbox()
-    img = bg.crop(bbox) if bbox else bg
     buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
+    bg.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (BLINDAJE DE TITANIO - CERO MULTI_CELL) ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
-    pdf.cell(0, 10, "INFORME MENSUAL DE ACTIVIDADES", ln=1, align='C')
+    pdf.cell(0, 10, "INFORME DE ACTIVIDADES DIGITAL", ln=1, align='C')
     
-    # Motor de escritura línea por línea (A prueba de fallos)
     def write_line(text, is_bold=False):
-        if is_bold:
-            pdf.set_font("Arial", "B", 10)
-        else:
-            pdf.set_font("Arial", "", 10)
-            
+        pdf.set_font("Arial", "B" if is_bold else "", 10)
         clean_text = str(text).encode('latin-1', 'replace').decode('latin-1')
-        
-        for paragraph in clean_text.split('\n'):
-            if not paragraph.strip():
-                pdf.ln(4)
-                continue
-            lines = textwrap.wrap(paragraph, width=100, break_long_words=True)
-            for line in lines:
-                pdf.set_x(10) 
-                pdf.cell(w=0, h=5, txt=line, ln=1)
+        lines = textwrap.wrap(clean_text, width=95, break_long_words=True)
+        for line in lines:
+            pdf.set_x(10)
+            pdf.cell(w=0, h=5, txt=line, ln=1)
 
     write_line(f"Nombre: {ctx['nombre']}")
-    write_line(f"Recinto/Dirección: {ctx['direccion']}")
-    write_line(f"Depto/Área: {ctx['depto']}")
+    write_line(f"RUT: {ctx['rut']}")
+    write_line(f"Unidad: {ctx['direccion']} - {ctx['depto']}")
     write_line(f"Periodo: {ctx['mes']} {ctx['anio']}")
     pdf.ln(5)
     
     pdf.set_font("Arial", "B", 11)
-    pdf.cell(0, 10, "Actividades Realizadas:", ln=1)
+    pdf.cell(0, 10, "Resumen de Gestión:", ln=1)
+    for act in ctx['actividades']:
+        write_line(f"● {act['Actividad']}: {act['Producto']}")
     
-    for idx, act in enumerate(ctx['actividades']):
-        write_line(f"Actividad {idx+1}: {act['Actividad']}", is_bold=True)
-        write_line(f"Resultado: {act['Producto']}")
-        pdf.ln(3) 
-    
-    pdf.ln(8)
-    y_firmas = pdf.get_y()
-    
-    if y_firmas > 230:
-        pdf.add_page()
-        y_firmas = pdf.get_y()
+    pdf.ln(10)
+    y_pos = pdf.get_y()
+    if y_pos > 230: pdf.add_page(); y_pos = 20
     
     if img_prestador_io:
-        img_p = Image.open(img_prestador_io)
-        with io.BytesIO() as temp_p:
-            img_p.save(temp_p, format="PNG")
-            pdf.image(temp_p, x=30, y=y_firmas, w=50)
-            pdf.text(x=35, y=y_firmas + 25, txt="Firma Prestador")
-            
+        pdf.image(img_prestador_io, x=30, y=y_pos, w=50)
+        pdf.text(x=35, y=y_pos+25, txt="Firma Prestador")
     if img_jefatura_io:
-        img_j = Image.open(img_jefatura_io)
-        with io.BytesIO() as temp_j:
-            img_j.save(temp_j, format="PNG")
-            pdf.image(temp_j, x=120, y=y_firmas, w=50)
-            pdf.text(x=125, y=y_firmas + 25, txt="Firma Jefatura")
+        pdf.image(img_jefatura_io, x=120, y=y_pos, w=50)
+        pdf.text(x=125, y=y_pos+25, txt="V°B° Jefatura")
             
     return bytes(pdf.output())
 
-# --- CABECERA COMÚN (LOGOS LOCALES Y DISEÑO RESPONSIVO) ---
+# --- 5. COMPONENTES VISALES (CABECERA Y HUINCHA) ---
 def mostrar_cabecera():
     st.markdown("""
         <style>
-        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 10px 5px; border-radius: 8px; margin-top: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; font-size: clamp(13px, 1.5vw, 16px); font-weight: 500;}
+        .ticker-wrap { width: 100%; overflow: hidden; background-color: #e8f5e9; color: #1b5e20; border: 2px solid #4caf50; padding: 12px 0; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 55s linear infinite; font-size: 19px; font-weight: bold;}
         @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-        .titulo-muni { text-align: center; color: #2C3E50; margin-bottom: 0; font-size: clamp(20px, 4vw, 32px); font-weight: bold; line-height: 1.2; }
-        .subtitulo-muni { text-align: center; color: #7f8c8d; font-size: clamp(14px, 2.5vw, 18px); margin-bottom: 15px; margin-top: 5px; }
         </style>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns([1.5, 5, 1.5], gap="small")
-    
+    c1, c2, c3 = st.columns([1, 4, 1])
     with c1:
-        if os.path.exists("logo_muni.png"):
-            st.image("logo_muni.png", use_container_width=True)
-        else:
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
-            
+        if os.path.exists("logo_muni.png"): st.image("logo_muni.png", width=130)
+        else: st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=110)
     with c2:
-        st.markdown("<div class='titulo-muni'>Ilustre Municipalidad de La Serena</div>", unsafe_allow_html=True)
-        st.markdown("<div class='subtitulo-muni'>Plataforma Oficial de Gestión Cero Papel</div>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center; color: #2C3E50; margin-bottom: 0;'>Ilustre Municipalidad de La Serena</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 20px; color: #1565c0; font-weight: bold;'>Sistema de Honorarios Digital 2026</p>", unsafe_allow_html=True)
         st.markdown("""
             <div class="ticker-wrap">
                 <div class="ticker">
-                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado ahorra <b>$3.638 CLP</b> al municipio, optimiza <b>40 minutos</b> operativos y evita la impresión de <b>5 hojas de papel</b> disminuyendo nuestra huella de carbono. ¡Gracias por sumar! 🚀
+                    ☀️ ¡BIENVENIDO A LA SERENA CERO PAPEL! 🌊 ● 🌳 <b>IMPACTO ANUAL PROYECTADO:</b> Estamos ahorrando <b>$78.580.800 CLP</b> en costos operativos ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b> al año! ● 🕒 Ganamos <b>14.400 horas</b> de tiempo para servir a nuestros vecinos ● ☀️ Menos tinta, menos electricidad, más futuro ● 🐑 ¡Nuestra huella de carbono disminuye gracias a ti! ● ✨ ¡Cambiando impresoras por innovación! 🌿🟢🔵
                 </div>
             </div>
         """, unsafe_allow_html=True)
-        
     with c3:
-        if os.path.exists("logo_innovacion.png"):
-            st.image("logo_innovacion.png", use_container_width=True)
-        else:
-            st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True)
+        if os.path.exists("logo_innovacion.png"): st.image("logo_innovacion.png", width=150)
+        else: st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", width=120)
 
-# --- MENSAJE DE IMPACTO ---
-def mostrar_mensaje_impacto():
-    st.success("""
-    ### ¡Acción Completada con Éxito! 🎉
-    **🌟 Tu contribución en este momento:**
-    * 💰 Le has ahorrado **$3.638 pesos** en costos operativos al Municipio.
-    * ⏱️ Has optimizado **40 minutos** de tramitación burocrática.
-    * 🌳 Has evitado imprimir **5 hojas**, ahorrando agua y reduciendo nuestra huella de carbono.
-    
-    *Cambiando el papel por innovación. ¡Gracias por tu compromiso!* 🚀
-    """)
-    st.balloons()
+def check_login(rol):
+    if st.session_state.get(f'auth_{rol}'): return True
+    st.warning(f"🔒 **Acceso Protegido - Portal {rol.capitalize()}**")
+    user = st.text_input("Usuario", key=f"u_{rol}")
+    psw = st.text_input("Contraseña", type="password", key=f"p_{rol}")
+    if st.button("Ingresar", key=f"b_{rol}"):
+        # Credenciales por defecto para pruebas
+        if (rol == "jefatura" and user == "jefatura" and psw == "123") or (rol == "finanzas" and user == "finanzas" and psw == "123"):
+            st.session_state[f'auth_{rol}'] = True
+            st.rerun()
+        else: st.error("Credenciales Inválidas")
+    return False
 
 # ==========================================
-# MÓDULO 1: PRESTADOR
+# MÓDULO 1: PORTAL PRESTADOR
 # ==========================================
 def modulo_prestador():
     mostrar_cabecera()
-    
-    if 'prestador_comprobantes' not in st.session_state:
-        st.session_state.prestador_comprobantes = None
+    if 'p_ok' not in st.session_state: st.session_state.p_ok = None
 
-    if st.session_state.prestador_comprobantes is None:
-        st.subheader("Generador de Informes 📝")
+    if st.session_state.p_ok is None:
+        st.subheader("📝 Ingreso de Informe Mensual")
+        with st.expander("👤 Paso 1: Identificación Civil y RUT", expanded=True):
+            cn, cp, cm = st.columns(3)
+            nombres = cn.text_input("Nombres", placeholder="Juan Andrés")
+            ap_paterno = cp.text_input("Apellido Paterno", placeholder="Pérez")
+            ap_materno = cm.text_input("Apellido Materno", placeholder="Rojas")
+            rut = st.text_input("RUT", placeholder="12.345.678-K", help="Ingrese con puntos y guion")
 
-        with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
-            nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
-            col_a, col_b = st.columns(2)
-            recinto = col_a.selectbox("Dirección Municipal o Recinto", unidades_municipales)
-            area = col_b.text_input("Departamento, Área o Unidad Específica", placeholder="Ej: Oficina de Partes")
-            jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
+        with st.expander("🏢 Paso 2: Ubicación Organizacional", expanded=True):
+            cdir, cdep = st.columns(2)
+            recinto = cdir.selectbox("Dirección Municipal o Recinto", unidades_municipales)
+            area = cdep.selectbox("Departamento, Área o Unidad Específica", departamentos_areas)
+            jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible"])
 
-        with st.expander("💰 Paso 2: Periodo y Montos", expanded=True):
-            c1, c2 = st.columns(2)
-            mes = c1.selectbox("Mes del Informe", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=2)
+        with st.expander("💰 Paso 3: Periodo y Monto", expanded=True):
+            c1, c2, c3 = st.columns(3)
+            mes = c1.selectbox("Mes", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=2)
             anio = c2.number_input("Año", value=2026)
-            st.divider()
-            c3, c4 = st.columns(2)
-            monto_contrato = c3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
-            n_boleta = c4.text_input("Nº Boleta SII", placeholder="000")
-            
-            impuesto = int(monto_contrato * 0.1525)
-            liquido = monto_contrato - impuesto
-            if monto_contrato > 0:
-                st.info(f"💰 **Resumen:** Bruto: ${monto_contrato:,.0f} | Retención (15.25%): ${impuesto:,.0f} | Líquido: ${liquido:,.0f}")
+            monto = c3.number_input("Monto Bruto ($)", value=0, step=10000)
 
-        st.subheader("📋 Paso 3: Resumen de Actividades")
-        if 'num_actividades' not in st.session_state: st.session_state.num_actividades = 1
-        def add_act(): st.session_state.num_actividades += 1
-        def del_act(): 
-            if st.session_state.num_actividades > 1: st.session_state.num_actividades -= 1
-
-        for i in range(st.session_state.num_actividades):
+        st.subheader("📋 Paso 4: Resumen de Actividades")
+        if 'num' not in st.session_state: st.session_state.num = 1
+        for i in range(st.session_state.num):
             ca, cp = st.columns(2)
-            ca.text_area(f"Actividad {i+1}", key=f"act_desc_{i}")
-            cp.text_area(f"Producto/Resultado {i+1}", key=f"act_prod_{i}")
+            ca.text_area(f"Actividad {i+1}", key=f"d_{i}")
+            cp.text_area(f"Resultado {i+1}", key=f"r_{i}")
+        if st.button("➕ Agregar Actividad"): st.session_state.num += 1; st.rerun()
 
-        c_btn1, c_btn2 = st.columns(2)
-        c_btn1.button("➕ Agregar Actividad", on_click=add_act, use_container_width=True)
-        c_btn2.button("➖ Eliminar Última", on_click=del_act, use_container_width=True)
+        st.subheader("✍️ Paso 5: Firma Digital")
+        canvas = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="c_pres")
 
-        st.subheader("✍️ Paso 4: Firma Digital")
-        canvas_result = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=350, drawing_mode="freedraw", key="canvas_prestador")
-        
-        firma_en_blanco = True
-        if canvas_result.image_data is not None:
-            if np.sum(canvas_result.image_data) != (150 * 350 * 4 * 255): firma_en_blanco = False
-
-        st.divider()
-        if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
-            if not nombre or firma_en_blanco:
-                st.error("⚠️ Debe ingresar su nombre y firmar el documento obligatoriamente.")
+        if st.button("🚀 ENVIAR A JEFATURA", type="primary", use_container_width=True):
+            if not nombres or not ap_paterno or not rut: st.error("Complete sus datos básicos.")
             else:
-                actividades_lista = []
-                for i in range(st.session_state.num_actividades):
-                    desc = st.session_state.get(f"act_desc_{i}", "")
-                    prod = st.session_state.get(f"act_prod_{i}", "")
-                    if desc or prod: actividades_lista.append({"Actividad": desc, "Producto": prod})
-                
-                firma_b64 = canvas_to_base64(canvas_result.image_data)
-                act_json = json.dumps(actividades_lista)
+                firma_b64 = canvas_to_base64(canvas.image_data)
+                acts = [{"Actividad": st.session_state[f"d_{i}"], "Producto": st.session_state[f"r_{i}"]} for i in range(st.session_state.num)]
+                nombre_completo = f"{nombres.upper()} {ap_paterno.upper()} {ap_materno.upper()}"
                 
                 c = conn.cursor()
-                c.execute("""INSERT INTO informes 
-                             (nombre, direccion, depto, jornada, mes, anio, monto, n_boleta, actividades_json, firma_prestador_b64, estado) 
-                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                          (nombre.upper(), recinto, area, jornada, mes.upper(), anio, monto_contrato, n_boleta, act_json, firma_b64, '🔴 Pendiente Jefatura'))
+                c.execute("INSERT INTO informes (nombres, apellido_p, apellido_m, rut, direccion, depto, jornada, mes, anio, monto, actividades_json, firma_prestador_b64, estado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                          (nombres.upper(), ap_paterno.upper(), ap_materno.upper(), rut, recinto, area, jornada, mes.upper(), anio, monto, json.dumps(acts), firma_b64, '🔴 Pendiente'))
                 conn.commit()
 
-                context = {
-                    'nombre': nombre.upper(), 'direccion': recinto, 'depto': area,
-                    'jornada': jornada, 'mes': mes.upper(), 'anio': anio,
-                    'monto': f"${monto_contrato:,.0f}", 'monto_boleta': f"${monto_contrato:,.0f}",
-                    'boleta': n_boleta, 'actividades': actividades_lista, 'descuentos': "$0"
-                }
-                img_prestador_io = base64_to_bytesio(firma_b64)
-                
-                doc = DocxTemplate("plantilla_base.docx")
-                context['firma'] = InlineImage(doc, img_prestador_io, height=Mm(20))
-                doc.render(context)
-                word_buf = io.BytesIO()
-                doc.save(word_buf)
-                
-                img_prestador_io.seek(0)
-                pdf_bytes = generar_pdf(context, img_prestador_io, None)
-
-                st.session_state.prestador_comprobantes = {
-                    "word": word_buf.getvalue(),
-                    "pdf": pdf_bytes,
-                    "nombre_archivo": f"Mi_Informe_{mes.upper()}_{anio}"
-                }
+                # Generar comprobante inmediato
+                ctx = {'nombre': nombre_completo, 'rut': rut, 'direccion': recinto, 'depto': area, 'mes': mes.upper(), 'anio': anio, 'actividades': acts}
+                pdf_bytes = generar_pdf(ctx, base64_to_bytesio(firma_b64), None)
+                st.session_state.p_ok = {"pdf": pdf_bytes, "nombre": f"Informe_{mes}_{ap_paterno}"}
                 st.rerun()
-                
     else:
-        mostrar_mensaje_impacto()
-        st.markdown("### 📥 Descarga tus comprobantes (Copia enviada a Jefatura)")
-        
-        col_w, col_p, col_e = st.columns(3)
-        nombre_base = st.session_state.prestador_comprobantes['nombre_archivo']
-        
-        with col_w:
-            st.download_button("📥 Descargar Copia Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
-        with col_p:
-            st.download_button("📥 Descargar Copia PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
-        with col_e:
-            enlace_correo = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado a Jefatura."
-            st.markdown(f'<a href="{enlace_correo}" target="_blank"><button style="width:100%; padding:0.4rem; background-color:#2C3E50; color:white; border:none; border-radius:5px; cursor:pointer;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
-            
-        st.divider()
-        if st.button("⬅️ Generar Nuevo Informe", use_container_width=True):
-            st.session_state.prestador_comprobantes = None
-            st.rerun()
+        st.success("✅ Informe enviado exitosamente.")
+        st.balloons()
+        st.download_button("📥 Descargar mi Comprobante (PDF)", st.session_state.p_ok['pdf'], f"{st.session_state.p_ok['nombre']}.pdf", use_container_width=True)
+        if st.button("Generar otro informe"): st.session_state.p_ok = None; st.rerun()
 
 # ==========================================
-# MÓDULO 2: JEFATURA (VISACIÓN)
+# MÓDULO 2: PORTAL JEFATURA
 # ==========================================
 def modulo_jefatura():
     mostrar_cabecera()
-    st.subheader("Bandeja de Jefatura 📥")
+    if not check_login("jefatura"): return
     
-    mi_unidad = st.selectbox("Filtrar por Dirección o Recinto:", unidades_municipales)
+    st.subheader("Bandeja de Visación Técnica 📥")
+    df = pd.read_sql_query("SELECT id, nombres, apellido_p, depto, mes, estado FROM informes WHERE estado='🔴 Pendiente'", conn)
     
-    df = pd.read_sql_query(f"SELECT id, nombre, depto, mes, monto, estado FROM informes WHERE direccion='{mi_unidad}' AND estado='🔴 Pendiente Jefatura'", conn)
-    
-    if df.empty:
-        st.info("🎉 ¡Excelente! No hay informes pendientes de visación en este recinto.")
+    if df.empty: st.info("🎉 No hay informes pendientes de visación.")
     else:
         st.dataframe(df, use_container_width=True, hide_index=True)
-        st.divider()
-        
-        st.subheader("Revisar y Visar")
-        id_selec = st.selectbox("Seleccione el ID del informe a visar:", df['id'].tolist())
+        id_sel = st.selectbox("ID a Visar:", df['id'].tolist())
         
         c = conn.cursor()
-        c.execute("SELECT * FROM informes WHERE id=?", (id_selec,))
-        row = c.fetchone()
-        columnas = [description[0] for description in c.description]
-        datos = dict(zip(columnas, row))
+        c.execute("SELECT * FROM informes WHERE id=?", (id_sel,))
+        d = dict(zip([col[0] for col in c.description], c.fetchone()))
         
-        st.write(f"**Prestador:** {datos['nombre']} | **Área:** {datos['depto']} | **Mes:** {datos['mes']}")
-        with st.expander("Ver Actividades Declaradas"):
-            actividades = json.loads(datos['actividades_json'])
-            for act in actividades:
-                st.markdown(f"- **{act['Actividad']}**: {act['Producto']}")
-                
-        st.write("✍️ **Firma de Jefatura (Visador)**")
-        canvas_jefatura = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=350, drawing_mode="freedraw", key="canvas_jefa")
+        st.write(f"**Funcionario:** {d['nombres']} {d['apellido_p']} | **Unidad:** {d['depto']}")
+        st.write("✍️ **Firma del Visador (Jefatura)**")
+        canvas_j = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=400, key="c_jefa")
         
-        firma_jefa_blanca = True
-        if canvas_jefatura.image_data is not None:
-            if np.sum(canvas_jefatura.image_data) != (150 * 350 * 4 * 255): firma_jefa_blanca = False
-
-        col_apr, col_rech = st.columns(2)
-        if col_apr.button("✅ VISAR Y ENVIAR A FINANZAS", type="primary", use_container_width=True):
-            if firma_jefa_blanca:
-                st.error("⚠️ La jefatura debe firmar para visar.")
-            else:
-                firma_jefa_b64 = canvas_to_base64(canvas_jefatura.image_data)
-                c.execute("UPDATE informes SET estado='🟡 Pendiente Finanzas', firma_jefatura_b64=? WHERE id=?", (firma_jefa_b64, id_selec))
-                conn.commit()
-                
-                mostrar_mensaje_impacto()
-                time.sleep(3)
-                st.rerun()
-
-        if col_rech.button("❌ RECHAZAR INFORME", use_container_width=True):
-            c.execute("UPDATE informes SET estado='❌ Rechazado Jefatura' WHERE id=?", (id_selec,))
+        if st.button("✅ VISAR Y ENVIAR A FINANZAS", type="primary", use_container_width=True):
+            f_j_b64 = canvas_to_base64(canvas_j.image_data)
+            c.execute("UPDATE informes SET estado='🟡 Visado', firma_jefatura_b64=? WHERE id=?", (f_j_b64, id_sel))
             conn.commit()
-            st.warning("El informe ha sido rechazado.")
-            time.sleep(1.5)
-            st.rerun()
+            st.success("Informe visado con éxito."); time.sleep(2); st.rerun()
 
 # ==========================================
-# MÓDULO 3: FINANZAS (CONTROL FINAL)
+# MÓDULO 3: PORTAL FINANZAS
 # ==========================================
 def modulo_finanzas():
     mostrar_cabecera()
-    st.subheader("Portal de Finanzas 🏛️")
+    if not check_login("finanzas"): return
     
-    df = pd.read_sql_query("SELECT id, nombre, direccion as recinto, mes, monto, estado FROM informes WHERE estado='🟡 Pendiente Finanzas'", conn)
+    st.subheader("Panel de Control Financiero 🏛️")
+    df = pd.read_sql_query("SELECT id, nombres, apellido_p, mes, monto, estado FROM informes WHERE estado='🟡 Visado'", conn)
     
-    if df.empty:
-        st.info("✅ Bandeja limpia. No hay informes pendientes de revisión financiera.")
+    if df.empty: st.info("✅ Todos los pagos están al día.")
     else:
         st.dataframe(df, use_container_width=True, hide_index=True)
-        st.divider()
-        
-        st.subheader("Gestión de Informe Seleccionado")
-        id_selec = st.selectbox("Seleccione el ID del informe a procesar:", df['id'].tolist())
+        id_sel = st.selectbox("ID para Pago:", df['id'].tolist())
         
         c = conn.cursor()
-        c.execute("SELECT * FROM informes WHERE id=?", (id_selec,))
-        row = c.fetchone()
-        columnas = [description[0] for description in c.description]
-        datos = dict(zip(columnas, row))
+        c.execute("SELECT * FROM informes WHERE id=?", (id_sel,))
+        d = dict(zip([col[0] for col in c.description], c.fetchone()))
         
-        liquido = int(datos['monto'] * 0.8475)
-        st.write(f"**Funcionario:** {datos['nombre']} | **Boleta SII:** {datos['n_boleta']} | **Líquido a Pagar:** ${liquido:,.0f}")
+        liquido = int(d['monto'] * 0.8475)
+        st.write(f"**Aprobar Pago:** {d['nombres']} {d['apellido_p']} | **Líquido:** ${liquido:,.0f}")
         
-        img_prestador_io = base64_to_bytesio(datos['firma_prestador_b64'])
-        img_jefatura_io = base64_to_bytesio(datos['firma_jefatura_b64'])
-        
-        context = {
-            'nombre': datos['nombre'], 'direccion': datos['direccion'], 'depto': datos['depto'],
-            'jornada': datos['jornada'], 'mes': datos['mes'], 'anio': datos['anio'],
-            'monto': f"${datos['monto']:,.0f}",
-            'monto_boleta': f"${datos['monto']:,.0f}",
-            'boleta': datos['n_boleta'], 'actividades': json.loads(datos['actividades_json']),
-            'descuentos': "$0"
-        }
-        
-        img_prestador_io.seek(0)
-        img_jefatura_io.seek(0)
-        pdf_bytes = generar_pdf(context, img_prestador_io, img_jefatura_io)
-        
-        st.markdown("### Acciones Disponibles")
-        col_desc, col_hist, col_pago = st.columns([1,1,1])
-        
-        with col_desc:
-            st.download_button("📥 1. Bajar PDF Final", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
-            
-        with col_hist:
-            if st.button("📁 2. Archivar Informe", use_container_width=True):
-                c.execute("UPDATE informes SET estado='📁 Archivado en Historial' WHERE id=?", (id_selec,))
-                conn.commit()
-                st.success("✅ Documento digitalizado y enlazado al expediente.")
-                time.sleep(1.5)
-                st.rerun()
-                
-        with col_pago:
-            if st.button("💸 3. Disparar Pago", type="primary", use_container_width=True):
-                c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_selec,))
-                conn.commit()
-                
-                mostrar_mensaje_impacto() 
-                time.sleep(3) 
-                st.rerun()
+        if st.button("💸 LIBERAR PAGO Y ARCHIVAR", type="primary", use_container_width=True):
+            c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_sel,))
+            conn.commit()
+            st.success("Pago procesado correctamente."); time.sleep(2); st.rerun()
 
-# --- ENRUTADOR PRINCIPAL ---
-with st.sidebar:
-    if os.path.exists("logo_muni.png"):
-        st.image("logo_muni.png", width=100)
+# ==========================================
+# MÓDULO 4: CONSOLIDADO E HISTORIAL
+# ==========================================
+def modulo_historial():
+    mostrar_cabecera()
+    if not check_login("finanzas"): return
+    
+    st.subheader("📊 Consolidado Maestro de Gestión")
+    df = pd.read_sql_query("SELECT * FROM informes", conn)
+    
+    if df.empty: st.info("No hay registros en el historial.")
     else:
-        st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=100)
+        st.markdown("#### 🔍 Filtros de Auditoría")
+        f1, f2, f3 = st.columns(3)
+        with f1: f_mes = st.selectbox("Filtrar Mes", ["Todos"] + list(df['mes'].unique()))
+        with f2: f_dep = st.selectbox("Filtrar Departamento", ["Todos"] + list(df['depto'].unique()))
+        with f3: f_est = st.selectbox("Filtrar Estado", ["Todos"] + list(df['estado'].unique()))
         
-    st.title("Sistema SAP Honorarios")
-    rol = st.radio("Seleccione su Rol de Acceso:", ["👤 1. Portal Prestador", "🧑‍💼 2. Portal Jefatura (Visación)", "🏛️ 3. Portal Finanzas (Pagos)"])
+        df_f = df.copy()
+        if f_mes != "Todos": df_f = df_f[df_f['mes'] == f_mes]
+        if f_dep != "Todos": df_f = df_f[df_f['depto'] == f_dep]
+        if f_est != "Todos": df_f = df_f[df_f['estado'] == f_est]
+        
+        st.dataframe(df_f.drop(columns=['actividades_json', 'firma_prestador_b64', 'firma_jefatura_b64']), use_container_width=True, hide_index=True)
+        
+        csv = df_f.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📊 Exportar Consolidado a Excel (CSV)", csv, "Consolidado_LaSerena_2026.csv", use_container_width=True)
 
-if rol == "👤 1. Portal Prestador":
-    modulo_prestador()
-elif rol == "🧑‍💼 2. Portal Jefatura (Visación)":
-    modulo_jefatura()
-else:
-    modulo_finanzas()
+# --- 6. NAVEGACIÓN ---
+rol = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
+if rol == "👤 Portal Prestador": modulo_prestador()
+elif rol == "🧑‍💼 Portal Jefatura 🔒": modulo_jefatura()
+elif rol == "🏛️ Portal Finanzas 🔒": modulo_finanzas()
+else: modulo_historial()
