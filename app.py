@@ -74,21 +74,17 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
         else:
             pdf.set_font("Arial", "", 10)
             
-        # Forzamos la limpieza de caracteres raros que rompen FPDF
         clean_text = str(text).encode('latin-1', 'replace').decode('latin-1')
         
-        # Procesamos párrafo por párrafo para respetar los "Enter" del usuario
         for paragraph in clean_text.split('\n'):
             if not paragraph.strip():
                 pdf.ln(4)
                 continue
-            # Obligamos a cortar líneas cada 100 caracteres exactos
             lines = textwrap.wrap(paragraph, width=100, break_long_words=True)
             for line in lines:
-                pdf.set_x(10) # Volvemos siempre al margen izquierdo
+                pdf.set_x(10) 
                 pdf.cell(w=0, h=5, txt=line, ln=1)
 
-    # Imprimimos la cabecera del informe
     write_line(f"Nombre: {ctx['nombre']}")
     write_line(f"Recinto/Dirección: {ctx['direccion']}")
     write_line(f"Depto/Área: {ctx['depto']}")
@@ -98,21 +94,18 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf.set_font("Arial", "B", 11)
     pdf.cell(0, 10, "Actividades Realizadas:", ln=1)
     
-    # Imprimimos las actividades ordenadas
     for idx, act in enumerate(ctx['actividades']):
         write_line(f"Actividad {idx+1}: {act['Actividad']}", is_bold=True)
         write_line(f"Resultado: {act['Producto']}")
-        pdf.ln(3) # Espacio entre actividades
+        pdf.ln(3) 
     
     pdf.ln(8)
     y_firmas = pdf.get_y()
     
-    # Si las actividades llenaron la hoja, pasamos la firma a una hoja nueva
     if y_firmas > 230:
         pdf.add_page()
         y_firmas = pdf.get_y()
     
-    # Pegamos las firmas
     if img_prestador_io:
         img_p = Image.open(img_prestador_io)
         with io.BytesIO() as temp_p:
@@ -136,7 +129,6 @@ def mostrar_cabecera():
         .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 10px 5px; border-radius: 8px; margin-top: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .ticker { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; font-size: clamp(13px, 1.5vw, 16px); font-weight: 500;}
         @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-        /* Títulos Responsivos */
         .titulo-muni { text-align: center; color: #2C3E50; margin-bottom: 0; font-size: clamp(20px, 4vw, 32px); font-weight: bold; line-height: 1.2; }
         .subtitulo-muni { text-align: center; color: #7f8c8d; font-size: clamp(14px, 2.5vw, 18px); margin-bottom: 15px; margin-top: 5px; }
         </style>
