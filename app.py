@@ -68,7 +68,7 @@ def base64_to_bytesio(b64_str):
     """Convierte Base64 de vuelta a BytesIO para Word/PDF"""
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (Ahora soporta 2 firmas) ---
+# --- GENERADOR DE PDF ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
@@ -87,8 +87,8 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
         pdf.multi_cell(0, 5, f"- {act['Actividad']}: {act['Producto']}")
     
     pdf.ln(10)
-    # Firmas
     y_firmas = pdf.get_y()
+    
     if img_prestador_io:
         img_p = Image.open(img_prestador_io)
         with io.BytesIO() as temp_p:
@@ -103,11 +103,12 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
             pdf.image(temp_j, x=120, y=y_firmas, w=50)
             pdf.text(x=125, y=y_firmas + 25, txt="Firma Jefatura")
             
-    return pdf.output()
+    # CORRECCIÓN VITAL PARA QUE STREAMLIT NO FALLE AL DESCARGAR
+    return bytes(pdf.output())
 
 
 # ==========================================
-# MÓDULO 1: PRESTADOR (TU CÓDIGO INTACTO)
+# MÓDULO 1: PRESTADOR
 # ==========================================
 def modulo_prestador():
     st.title("Generador de Informes 📝")
@@ -182,7 +183,7 @@ def modulo_prestador():
 
 
 # ==========================================
-# MÓDULO 2: JEFATURA (VISACIÓN Y DESCARGA)
+# MÓDULO 2: JEFATURA
 # ==========================================
 def modulo_jefatura():
     st.title("Bandeja de Visación 📥")
@@ -190,7 +191,6 @@ def modulo_jefatura():
     
     mi_unidad = st.selectbox("Filtrar por Unidad / Dirección:", unidades_municipales)
     
-    # Leer pendientes de la unidad seleccionada
     df = pd.read_sql_query(f"SELECT id, nombre, mes, monto, estado, fecha_envio FROM informes WHERE direccion='{mi_unidad}' AND estado='🔴 Pendiente'", conn)
     
     if df.empty:
@@ -202,7 +202,6 @@ def modulo_jefatura():
         st.subheader("Revisar y Aprobar")
         id_selec = st.selectbox("Seleccione el ID del informe a visar:", df['id'].tolist())
         
-        # Cargar datos completos del ID seleccionado
         c = conn.cursor()
         c.execute("SELECT * FROM informes WHERE id=?", (id_selec,))
         row = c.fetchone()
@@ -229,11 +228,9 @@ def modulo_jefatura():
             else:
                 firma_jefa_b64 = canvas_to_base64(canvas_jefatura.image_data)
                 
-                # Actualizar DB
                 c.execute("UPDATE informes SET estado='🟢 Aprobado', firma_jefatura_b64=? WHERE id=?", (firma_jefa_b64, id_selec))
                 conn.commit()
                 
-                # --- GENERAR ARCHIVOS FINALES ---
                 img_prestador_io = base64_to_bytesio(datos['firma_prestador_b64'])
                 img_jefatura_io = base64_to_bytesio(firma_jefa_b64)
                 
@@ -246,7 +243,6 @@ def modulo_jefatura():
                     'descuentos': "$0"
                 }
                 
-                # Word
                 doc = DocxTemplate("plantilla_base.docx")
                 context['firma'] = InlineImage(doc, img_prestador_io, height=Mm(20))
                 context['firma_jefatura'] = InlineImage(doc, img_jefatura_io, height=Mm(20))
@@ -254,7 +250,6 @@ def modulo_jefatura():
                 word_buf = io.BytesIO()
                 doc.save(word_buf)
                 
-                # PDF
                 img_prestador_io.seek(0)
                 img_jefatura_io.seek(0)
                 pdf_bytes = generar_pdf(context, img_prestador_io, img_jefatura_io)
