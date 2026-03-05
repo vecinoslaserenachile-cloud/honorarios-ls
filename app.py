@@ -9,13 +9,14 @@ import pandas as pd
 import json
 import base64
 import textwrap
+import time
 from docx.shared import Mm
 from fpdf import FPDF
 
 # --- 1. CONFIGURACIÓN INICIAL Y BASE DE DATOS ---
 st.set_page_config(page_title="Honorarios La Serena", page_icon="📝", layout="wide")
 
-# (Desactivado temporalmente para evitar la pantalla blanca si hay errores de servidor)
+# (Oculto temporalmente para ver errores si los hay en el servidor)
 # st.markdown("""
 #     <style>
 #     #MainMenu {visibility: hidden;}
@@ -68,7 +69,7 @@ def canvas_to_base64(canvas_data):
 def base64_to_bytesio(b64_str):
     return io.BytesIO(base64.b64decode(b64_str))
 
-# --- GENERADOR DE PDF (BLINDADO CONTRA TEXTOS LARGOS) ---
+# --- GENERADOR DE PDF ---
 def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     pdf = FPDF()
     pdf.add_page()
@@ -87,8 +88,11 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
     
     for act in ctx['actividades']:
         texto_crudo = f"- {act['Actividad']}: {act['Producto']}"
-        texto_seguro = textwrap.fill(texto_crudo, width=95) 
-        pdf.multi_cell(0, 5, texto_seguro)
+        texto_seguro = textwrap.fill(texto_crudo, width=70, break_long_words=True)
+        try:
+            pdf.multi_cell(0, 5, texto_seguro)
+        except Exception:
+            pdf.multi_cell(0, 5, "- (Actividad redactada con caracteres especiales, ver Word)")
     
     pdf.ln(10)
     y_firmas = pdf.get_y()
@@ -109,87 +113,166 @@ def generar_pdf(ctx, img_prestador_io, img_jefatura_io=None):
             
     return bytes(pdf.output())
 
-# --- CABECERA COMÚN (LOGOS) ---
+# --- CABECERA COMÚN (LOGOS Y TICKER DE IMPACTO) ---
 def mostrar_cabecera():
-    c1, c2, c3 = st.columns([1, 4, 1])
+    # CSS para el ticker dinámico (Letrero móvil)
+    st.markdown("""
+        <style>
+        .ticker-wrap { width: 100%; overflow: hidden; background-color: #f8f9fa; color: #2C3E50; border: 2px solid #28a745; padding: 8px 0; border-radius: 8px; margin-top: 15px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 25s linear infinite; font-size: 16px; font-weight: 500;}
+        @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+        </style>
+    """, unsafe_allow_html=True)
+
+    c1, c2, c3 = st.columns([1.5, 5, 1.5])
     c1.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", use_container_width=True)
-    c2.markdown("<h2 style='text-align: center; color: #2C3E50;'>Ilustre Municipalidad de La Serena</h2>", unsafe_allow_html=True)
-    c2.markdown("<p style='text-align: center;'>Plataforma Oficial de Autogestión de Honorarios</p>", unsafe_allow_html=True)
+    
+    with c2:
+        st.markdown("<h2 style='text-align: center; color: #2C3E50; margin-bottom: 0;'>Ilustre Municipalidad de La Serena</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 18px; color: #7f8c8d;'>Plataforma Oficial de Gestión Cero Papel</p>", unsafe_allow_html=True)
+        # El letrero móvil
+        st.markdown("""
+            <div class="ticker-wrap">
+                <div class="ticker">
+                    🌳 <b>TRANSFORMACIÓN DIGITAL LA SERENA:</b> Cada informe procesado en esta plataforma ahorra <b>$3.638 CLP</b> al municipio, optimiza <b>40 minutos</b> de tiempo administrativo, y evita la impresión de <b>5 hojas de papel</b> disminuyendo nuestra huella de carbono. ¡Gracias por ser parte del cambio! 🚀
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
     c3.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", use_container_width=True) 
-    st.divider()
+
+# --- MENSAJE DE IMPACTO (REUTILIZABLE) ---
+def mostrar_mensaje_impacto():
+    st.success("""
+    ### ¡Acción Completada con Éxito! 🎉
+    **🌟 Tu contribución en este momento:**
+    * 💰 Le has ahorrado **$3.638 pesos** en costos operativos al Municipio.
+    * ⏱️ Has optimizado **40 minutos** de tramitación burocrática.
+    * 🌳 Has evitado imprimir **5 hojas**, ahorrando agua y reduciendo nuestra huella de carbono.
+    
+    *Cambiando el papel por innovación. ¡Gracias por tu compromiso!* 🚀
+    """)
+    st.balloons()
 
 # ==========================================
 # MÓDULO 1: PRESTADOR
 # ==========================================
 def modulo_prestador():
     mostrar_cabecera()
-    st.title("Generador de Informes 📝")
-
-    with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
-        nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
-        col_a, col_b = st.columns(2)
-        recinto = col_a.selectbox("Dirección Municipal o Recinto", unidades_municipales)
-        area = col_b.text_input("Departamento, Área o Unidad Específica", placeholder="Ej: Oficina de Partes")
-        jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
-
-    with st.expander("💰 Paso 2: Periodo y Montos", expanded=True):
-        c1, c2 = st.columns(2)
-        mes = c1.selectbox("Mes del Informe", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=2)
-        anio = c2.number_input("Año", value=2026)
-        st.divider()
-        c3, c4 = st.columns(2)
-        monto_contrato = c3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
-        n_boleta = c4.text_input("Nº Boleta SII", placeholder="000")
-        
-        impuesto = int(monto_contrato * 0.1525)
-        liquido = monto_contrato - impuesto
-        if monto_contrato > 0:
-            st.info(f"💰 **Resumen:** Bruto: ${monto_contrato:,.0f} | Retención (15.25%): ${impuesto:,.0f} | Líquido: ${liquido:,.0f}")
-
-    st.subheader("📋 Paso 3: Resumen de Actividades")
-    if 'num_actividades' not in st.session_state: st.session_state.num_actividades = 1
-    def add_act(): st.session_state.num_actividades += 1
-    def del_act(): 
-        if st.session_state.num_actividades > 1: st.session_state.num_actividades -= 1
-
-    for i in range(st.session_state.num_actividades):
-        ca, cp = st.columns(2)
-        ca.text_area(f"Actividad {i+1}", key=f"act_desc_{i}")
-        cp.text_area(f"Producto/Resultado {i+1}", key=f"act_prod_{i}")
-
-    c_btn1, c_btn2 = st.columns(2)
-    c_btn1.button("➕ Agregar Actividad", on_click=add_act, use_container_width=True)
-    c_btn2.button("➖ Eliminar Última", on_click=del_act, use_container_width=True)
-
-    st.subheader("✍️ Paso 4: Firma Digital")
-    canvas_result = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, drawing_mode="freedraw", key="canvas_prestador")
     
-    firma_en_blanco = True
-    if canvas_result.image_data is not None:
-        if np.sum(canvas_result.image_data) != (150 * 400 * 4 * 255): firma_en_blanco = False
+    if 'prestador_comprobantes' not in st.session_state:
+        st.session_state.prestador_comprobantes = None
 
-    st.divider()
-    if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
-        if not nombre or firma_en_blanco:
-            st.error("⚠️ Debe ingresar su nombre y firmar el documento obligatoriamente.")
-        else:
-            actividades_lista = []
-            for i in range(st.session_state.num_actividades):
-                desc = st.session_state.get(f"act_desc_{i}", "")
-                prod = st.session_state.get(f"act_prod_{i}", "")
-                if desc or prod: actividades_lista.append({"Actividad": desc, "Producto": prod})
+    if st.session_state.prestador_comprobantes is None:
+        st.title("Generador de Informes 📝")
+
+        with st.expander("👤 Paso 1: Estructura Organizacional e Identificación", expanded=True):
+            nombre = st.text_input("Nombre Completo del Prestador", placeholder="Ej: JUAN PÉREZ ROJAS")
+            col_a, col_b = st.columns(2)
+            recinto = col_a.selectbox("Dirección Municipal o Recinto", unidades_municipales)
+            area = col_b.text_input("Departamento, Área o Unidad Específica", placeholder="Ej: Oficina de Partes")
+            jornada = st.selectbox("Tipo de Jornada", ["Libre", "Completa", "Flexible", "Media Jornada"])
+
+        with st.expander("💰 Paso 2: Periodo y Montos", expanded=True):
+            c1, c2 = st.columns(2)
+            mes = c1.selectbox("Mes del Informe", ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], index=2)
+            anio = c2.number_input("Año", value=2026)
+            st.divider()
+            c3, c4 = st.columns(2)
+            monto_contrato = c3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
+            n_boleta = c4.text_input("Nº Boleta SII", placeholder="000")
             
-            firma_b64 = canvas_to_base64(canvas_result.image_data)
-            act_json = json.dumps(actividades_lista)
+            impuesto = int(monto_contrato * 0.1525)
+            liquido = monto_contrato - impuesto
+            if monto_contrato > 0:
+                st.info(f"💰 **Resumen:** Bruto: ${monto_contrato:,.0f} | Retención (15.25%): ${impuesto:,.0f} | Líquido: ${liquido:,.0f}")
+
+        st.subheader("📋 Paso 3: Resumen de Actividades")
+        if 'num_actividades' not in st.session_state: st.session_state.num_actividades = 1
+        def add_act(): st.session_state.num_actividades += 1
+        def del_act(): 
+            if st.session_state.num_actividades > 1: st.session_state.num_actividades -= 1
+
+        for i in range(st.session_state.num_actividades):
+            ca, cp = st.columns(2)
+            ca.text_area(f"Actividad {i+1}", key=f"act_desc_{i}")
+            cp.text_area(f"Producto/Resultado {i+1}", key=f"act_prod_{i}")
+
+        c_btn1, c_btn2 = st.columns(2)
+        c_btn1.button("➕ Agregar Actividad", on_click=add_act, use_container_width=True)
+        c_btn2.button("➖ Eliminar Última", on_click=del_act, use_container_width=True)
+
+        st.subheader("✍️ Paso 4: Firma Digital")
+        canvas_result = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, drawing_mode="freedraw", key="canvas_prestador")
+        
+        firma_en_blanco = True
+        if canvas_result.image_data is not None:
+            if np.sum(canvas_result.image_data) != (150 * 400 * 4 * 255): firma_en_blanco = False
+
+        st.divider()
+        if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
+            if not nombre or firma_en_blanco:
+                st.error("⚠️ Debe ingresar su nombre y firmar el documento obligatoriamente.")
+            else:
+                actividades_lista = []
+                for i in range(st.session_state.num_actividades):
+                    desc = st.session_state.get(f"act_desc_{i}", "")
+                    prod = st.session_state.get(f"act_prod_{i}", "")
+                    if desc or prod: actividades_lista.append({"Actividad": desc, "Producto": prod})
+                
+                firma_b64 = canvas_to_base64(canvas_result.image_data)
+                act_json = json.dumps(actividades_lista)
+                
+                c = conn.cursor()
+                c.execute("""INSERT INTO informes 
+                             (nombre, direccion, depto, jornada, mes, anio, monto, n_boleta, actividades_json, firma_prestador_b64, estado) 
+                             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                          (nombre.upper(), recinto, area, jornada, mes.upper(), anio, monto_contrato, n_boleta, act_json, firma_b64, '🔴 Pendiente Jefatura'))
+                conn.commit()
+
+                context = {
+                    'nombre': nombre.upper(), 'direccion': recinto, 'depto': area,
+                    'jornada': jornada, 'mes': mes.upper(), 'anio': anio,
+                    'monto': f"${monto_contrato:,.0f}", 'monto_boleta': f"${monto_contrato:,.0f}",
+                    'boleta': n_boleta, 'actividades': actividades_lista, 'descuentos': "$0"
+                }
+                img_prestador_io = base64_to_bytesio(firma_b64)
+                
+                doc = DocxTemplate("plantilla_base.docx")
+                context['firma'] = InlineImage(doc, img_prestador_io, height=Mm(20))
+                doc.render(context)
+                word_buf = io.BytesIO()
+                doc.save(word_buf)
+                
+                img_prestador_io.seek(0)
+                pdf_bytes = generar_pdf(context, img_prestador_io, None)
+
+                st.session_state.prestador_comprobantes = {
+                    "word": word_buf.getvalue(),
+                    "pdf": pdf_bytes,
+                    "nombre_archivo": f"Mi_Informe_{mes.upper()}_{anio}"
+                }
+                st.rerun()
+                
+    else:
+        mostrar_mensaje_impacto()
+        st.markdown("### 📥 Descarga tus comprobantes (Copia enviada a Jefatura)")
+        
+        col_w, col_p, col_e = st.columns(3)
+        nombre_base = st.session_state.prestador_comprobantes['nombre_archivo']
+        
+        with col_w:
+            st.download_button("📥 Descargar Copia Word", st.session_state.prestador_comprobantes['word'], f"{nombre_base}.docx", use_container_width=True)
+        with col_p:
+            st.download_button("📥 Descargar Copia PDF", st.session_state.prestador_comprobantes['pdf'], f"{nombre_base}.pdf", use_container_width=True)
+        with col_e:
+            enlace_correo = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado a Jefatura."
+            st.markdown(f'<a href="{enlace_correo}" target="_blank"><button style="width:100%; padding:0.4rem; background-color:#2C3E50; color:white; border:none; border-radius:5px; cursor:pointer;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
             
-            c = conn.cursor()
-            c.execute("""INSERT INTO informes 
-                         (nombre, direccion, depto, jornada, mes, anio, monto, n_boleta, actividades_json, firma_prestador_b64, estado) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                      (nombre.upper(), recinto, area, jornada, mes.upper(), anio, monto_contrato, n_boleta, act_json, firma_b64, '🔴 Pendiente Jefatura'))
-            conn.commit()
-            st.success("✅ ¡Informe enviado exitosamente! Su jefatura ha sido notificada para la visación.")
-            st.balloons()
+        st.divider()
+        if st.button("⬅️ Generar Nuevo Informe", use_container_width=True):
+            st.session_state.prestador_comprobantes = None
+            st.rerun()
 
 # ==========================================
 # MÓDULO 2: JEFATURA (VISACIÓN)
@@ -197,14 +280,13 @@ def modulo_prestador():
 def modulo_jefatura():
     mostrar_cabecera()
     st.title("Bandeja de Jefatura 📥")
-    st.markdown("### Visación Técnica de Informes")
     
     mi_unidad = st.selectbox("Filtrar por Dirección o Recinto:", unidades_municipales)
     
     df = pd.read_sql_query(f"SELECT id, nombre, depto, mes, monto, estado FROM informes WHERE direccion='{mi_unidad}' AND estado='🔴 Pendiente Jefatura'", conn)
     
     if df.empty:
-        st.info("🎉 No hay informes pendientes de visación en este recinto.")
+        st.info("🎉 ¡Excelente! No hay informes pendientes de visación en este recinto.")
     else:
         st.dataframe(df, use_container_width=True, hide_index=True)
         st.divider()
@@ -239,13 +321,16 @@ def modulo_jefatura():
                 firma_jefa_b64 = canvas_to_base64(canvas_jefatura.image_data)
                 c.execute("UPDATE informes SET estado='🟡 Pendiente Finanzas', firma_jefatura_b64=? WHERE id=?", (firma_jefa_b64, id_selec))
                 conn.commit()
-                st.success("✅ Visación técnica completada. El informe ha sido derivado a Finanzas.")
+                
+                mostrar_mensaje_impacto() # Muestra el banner y los globos
+                time.sleep(3) # Pausa dramática para que la Jefatura lea su logro antes de recargar
                 st.rerun()
 
         if col_rech.button("❌ RECHAZAR INFORME", use_container_width=True):
             c.execute("UPDATE informes SET estado='❌ Rechazado Jefatura' WHERE id=?", (id_selec,))
             conn.commit()
             st.warning("El informe ha sido rechazado.")
+            time.sleep(1.5)
             st.rerun()
 
 # ==========================================
@@ -254,7 +339,6 @@ def modulo_jefatura():
 def modulo_finanzas():
     mostrar_cabecera()
     st.title("Portal de Finanzas 🏛️")
-    st.markdown("### Control Administrativo y Aprobación de Pago")
     
     df = pd.read_sql_query("SELECT id, nombre, direccion as recinto, mes, monto, estado FROM informes WHERE estado='🟡 Pendiente Finanzas'", conn)
     
@@ -276,7 +360,6 @@ def modulo_finanzas():
         liquido = int(datos['monto'] * 0.8475)
         st.write(f"**Funcionario:** {datos['nombre']} | **Boleta SII:** {datos['n_boleta']} | **Líquido a Pagar:** ${liquido:,.0f}")
         
-        # Pre-generar PDF para descarga en memoria
         img_prestador_io = base64_to_bytesio(datos['firma_prestador_b64'])
         img_jefatura_io = base64_to_bytesio(datos['firma_jefatura_b64'])
         
@@ -300,18 +383,20 @@ def modulo_finanzas():
             st.download_button("📥 1. Descargar Evidencia (PDF)", pdf_bytes, f"Informe_FINAL_{datos['mes']}_{datos['nombre']}.pdf", mime="application/pdf", use_container_width=True)
             
         with col_hist:
-            if st.button("📁 2. Guardar en Historial Funcionario", use_container_width=True):
+            if st.button("📁 2. Guardar en Historial", use_container_width=True):
                 c.execute("UPDATE informes SET estado='📁 Archivado en Historial' WHERE id=?", (id_selec,))
                 conn.commit()
-                st.success("✅ Documento digitalizado y enlazado al expediente del funcionario.")
+                st.success("✅ Documento digitalizado y enlazado al expediente.")
+                time.sleep(1.5)
                 st.rerun()
                 
         with col_pago:
             if st.button("💸 3. Validar y Disparar Pago", type="primary", use_container_width=True):
                 c.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_selec,))
                 conn.commit()
-                st.success("✅ ¡Aprobación procesada! Instrucción de pago derivada a Tesorería.")
-                st.balloons()
+                
+                mostrar_mensaje_impacto() # Muestra el banner y los globos a Finanzas
+                time.sleep(3) # Pausa de 3 segundos para celebrar antes de volver a la bandeja
                 st.rerun()
 
 # --- ENRUTADOR PRINCIPAL ---
