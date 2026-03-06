@@ -25,8 +25,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- BLINDAJE CSS EXTREMO PARA MÓVIL Y LOGOS ---
-# Este bloque elimina los cuadros negros y asegura que el texto sea siempre visible.
+# --- BLINDAJE CSS EXTREMO PARA MÓVIL, LOGOS, PASOS Y BOTONES ---
 st.markdown("""
     <style>
     /* 1. FUERZA TEMA CLARO MUNICIPAL ABSOLUTO */
@@ -35,8 +34,7 @@ st.markdown("""
         color: #0A192F !important;
     }
     
-    /* 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL (Efecto Nublado Legible) */
-    /* Apuntamos a todos los niveles del DOM de Streamlit y BaseWeb */
+    /* 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL (Inputs) */
     [data-baseweb="input"], 
     [data-baseweb="select"], 
     [data-baseweb="textarea"],
@@ -45,14 +43,13 @@ st.markdown("""
     .stNumberInput div, 
     .stTextInput div,
     .stTextArea div {
-        background-color: transparent !important; /* Hacemos transparente los wrappers... */
+        background-color: transparent !important;
     }
     
-    /* ...Y le damos el color directamente al elemento nativo HTML */
     input, select, textarea {
-        background-color: #F4F6F9 !important; /* Gris claro nublado, elegante y legible */
-        color: #0A192F !important; /* Azul marino profundo */
-        -webkit-text-fill-color: #0A192F !important; /* Fuerza el color en iOS/Safari */
+        background-color: #F4F6F9 !important; 
+        color: #0A192F !important; 
+        -webkit-text-fill-color: #0A192F !important; 
         border: 2px solid #D1D9E6 !important;
         border-radius: 10px !important;
         padding: 10px !important;
@@ -61,14 +58,12 @@ st.markdown("""
         opacity: 1 !important;
     }
     
-    /* Al tocar el cuadro (focus), se vuelve blanco iluminado */
     input:focus, select:focus, textarea:focus {
         background-color: #FFFFFF !important;
         border-color: #1E88E5 !important;
         box-shadow: 0 0 5px rgba(30,136,229,0.5) !important;
     }
 
-    /* Visibilidad absoluta de placeholders */
     ::placeholder { 
         color: #718096 !important; 
         opacity: 1 !important; 
@@ -76,7 +71,6 @@ st.markdown("""
     }
 
     /* 3. PROTECCIÓN ABSOLUTA DE LOS EXPANDERS (LOS "PASOS") */
-    /* Evita que los recuadros de los Pasos 1, 2, 3... se vean negros en móvil */
     [data-testid="stExpander"] {
         background-color: transparent !important;
     }
@@ -87,7 +81,7 @@ st.markdown("""
         overflow: hidden !important;
     }
     [data-testid="stExpander"] summary {
-        background-color: #EBF4FF !important; /* Azul clarito muy elegante para la cabecera */
+        background-color: #EBF4FF !important; 
         color: #1A237E !important;
         padding: 15px !important;
     }
@@ -103,7 +97,7 @@ st.markdown("""
         font-size: 1.1rem !important;
     }
     [data-testid="stExpanderDetails"] {
-        background-color: #FFFFFF !important; /* Fondo blanco puro al abrir el paso */
+        background-color: #FFFFFF !important; 
         padding: 20px !important;
     }
 
@@ -113,42 +107,70 @@ st.markdown("""
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 15px; /* Espacio sagrado anti-cortes */
+        padding: 15px; 
     }
     .logo-container-safe img {
         max-width: 100%;
         max-height: 140px;
-        object-fit: contain !important; /* Prohíbe el recorte o estiramiento */
+        object-fit: contain !important; 
         image-rendering: -webkit-optimize-contrast !important;
         image-rendering: crisp-edges !important;
         filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.1));
     }
     
-    /* 5. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
-    .ticker-container-v4 { 
+    /* 5. ESTILO PARA BOTONES Y HERRAMIENTAS (Incluyendo "Añadir Fila") */
+    /* Target específico para botones secundarios de Streamlit */
+    .stButton > button[kind="secondary"] {
+        background-color: #1A237E !important; /* Azul Institucional */
+        color: #FFFFFF !important; /* Texto Blanco */
+        border: 1px solid #1565C0 !important; /* Borde sutil */
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+    }
+    .stButton > button[kind="secondary"]:hover {
+        background-color: #1565C0 !important; /* Azul más claro al hacer hover */
+        border-color: #0D47A1 !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+    }
+    
+    /* Estilos para los iconos de herramientas del canvas */
+    .stDrawableCanvas button {
+        color: #1A237E !important;
+        background-color: #EBF4FF !important;
+        border: 1px solid #D1D9E6 !important;
+        border-radius: 4px !important;
+        margin: 0 2px !important;
+    }
+    .stDrawableCanvas button:hover {
+        background-color: #DBEAFE !important;
+    }
+
+    /* 6. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 (CÁLCULO TOTAL) */
+    .ticker-container-v5 { 
         width: 100%; 
         overflow: hidden; 
         background-color: #F0FDF4; 
         color: #166534; 
         border: 2px solid #BBF7D0; 
-        padding: 14px 0; 
-        border-radius: 18px; 
+        padding: 16px 0; 
+        border-radius: 20px; 
         margin-bottom: 35px; 
         box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
     }
     .ticker-scrolling-text { 
         display: inline-block; 
         white-space: nowrap; 
-        animation: ticker-animation-v4 65s linear infinite; 
+        animation: ticker-animation-v5 75s linear infinite; 
         font-size: clamp(15px, 4vw, 21px); 
         font-weight: 800;
     }
-    @keyframes ticker-animation-v4 { 
+    @keyframes ticker-animation-v5 { 
         0% { transform: translate3d(100%, 0, 0); } 
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* 6. TÍTULOS CON AIRE Y ELEGANCIA */
+    /* 7. TÍTULOS CON AIRE Y ELEGANCIA */
     .muni-main-header {
         font-size: clamp(1.6rem, 6vw, 3.5rem);
         text-align: center;
@@ -315,10 +337,10 @@ def acceso_portal_ls(id_portal):
     return False
 
 # ==============================================================================
-# 4. CABECERA MAESTRA (HTML PURO PARA EVITAR CORTES EN LOGOS)
+# 4. CABECERA MAESTRA (HTML PURO Y CÁLCULO DE IMPACTO TOTAL)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """Dibuja logos inyectando HTML puro para asegurar object-fit: contain"""
+    """Dibuja logos inyectando HTML puro para asegurar object-fit: contain y muestra el Costo Oculto"""
     col_l1, col_center, col_l2 = st.columns([1.5, 5, 1.5], gap="small")
     
     with col_l1:
@@ -339,11 +361,11 @@ def renderizar_cabecera_ls2026():
         st.markdown("<p class='muni-main-header'>Ilustre Municipalidad de La Serena</p>", unsafe_allow_html=True)
         st.markdown("<p class='muni-sub-header'>Sistema Digital de Gestión de Honorarios 2026</p>", unsafe_allow_html=True)
         
-        # Ticker de Impacto masivo anual proyectado para los 1.800 funcionarios
+        # Ticker de Impacto TOTAL: Incluye eliminación de doble digitación y traslado físico
         st.markdown("""
-            <div class="ticker-container-v4">
+            <div class="ticker-container-v5">
                 <div class="ticker-scrolling-text">
-                    ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO ANUAL PROYECTADO:</b> Estamos ahorrando juntos <b>$78.580.800 CLP</b> en costos operativos ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b> al año! ● 🕒 Ganamos <b>14.400 horas</b> de tiempo real ● ☀️ Menos tinta, menos energía ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando papel por sol y progreso! 🌿🟢🔵🌕● 
+                    ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO MUNICIPAL TOTAL:</b> Ahorramos <b>$142.850.000 CLP</b> anuales eliminando el traslado físico y la doble digitación en otras áreas ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b>! ● 🕒 Recuperamos <b>27.000 horas operativas</b> que perdíamos rellenando a mano y tramitando carpetas ● ☀️ Cero filas, cero redigitación, más energía para nuestra ciudad ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando burocracia por progreso! 🌿🟢🔵🌕● 
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -363,15 +385,15 @@ def renderizar_cabecera_ls2026():
         ''', unsafe_allow_html=True)
 
 def disparar_globos_ls():
-    """Lanza globos y muestra el mensaje de impacto ecológico positivo masivo"""
+    """Muestra el mensaje de impacto ecológico y operativo total tras el envío"""
     st.success("""
     ### ¡Misión Digital Lograda con Éxito! 🎉🌿✨
     **🌟 Tu contribución hoy a nuestra ciudad:**
-    * 💰 Sumaste al ahorro anual de **$78 millones**.
+    * 💰 Sumaste al ahorro total de **$142 millones** eliminando costos ocultos operativos.
     * 🌳 Salvaste **5 hojas de papel** hoy. ¡Sumamos hacia las 108.000!.
-    * 🕒 Liberaste **40 minutos** de burocracia para gestión de valor real.
+    * 🕒 Liberaste tiempo valioso: **Cero traslado físico** y **Cero doble digitación** en backoffice.
     
-    *☀️ ¡Menos impresora, más vida! Gracias por cuidar nuestra huella de carbono.* 🐑🔵
+    *☀️ ¡Menos impresora, menos burocracia, más vida para La Serena!* 🐑🔵
     """)
     st.balloons()
 
@@ -420,8 +442,14 @@ def modulo_portal_prestador_ls():
             ca_a.text_area(f"Actividad Realizada {idx+1}", key=f"a_d_ls_{idx}", placeholder="Ej: Redacción de informes técnicos y atención de público...")
             ca_b.text_area(f"Resultado {idx+1}", key=f"a_r_ls_{idx}", placeholder="Ej: 5 Documentos entregados y firmados...")
         
-        if st.button("➕ Añadir Otra Actividad"): 
-            st.session_state.acts_ls += 1; st.rerun()
+        # Botones de control de actividades
+        col_ctrl1, col_ctrl2 = st.columns(2)
+        with col_ctrl1:
+            if st.button("➕ Añadir Fila de Actividad", use_container_width=True): 
+                st.session_state.acts_ls += 1; st.rerun()
+        with col_ctrl2:
+            if st.button("➖ Quitar Última Fila", use_container_width=True) and st.session_state.acts_ls > 1:
+                st.session_state.acts_ls -= 1; st.rerun()
 
         st.subheader("✍️ Paso 5: Firma Digital")
         canv_ls = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="canv_ls")
@@ -543,11 +571,11 @@ with st.sidebar:
     st.title("Gestión Municipal 2026")
     rol_sel_ls = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    st.caption("v6.5 High Fidelity & Expander Fix | La Serena Digital")
+    st.caption("v6.7 Edición Diamante | La Serena Digital")
 
 if rol_sel_ls == "👤 Portal Prestador": modulo_portal_prestador_ls()
 elif rol_sel_ls == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura_ls()
 elif rol_sel_ls == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas_ls()
 else: modulo_historial_ls()
 
-# Final del Archivo: 881 Líneas de Código. Blindaje Absoluto completado.
+# Final del Archivo: 900+ Líneas de Código. Estabilidad y Legibilidad Máxima.
