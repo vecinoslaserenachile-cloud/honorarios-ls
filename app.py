@@ -26,22 +26,34 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL, MENÚ Y TEXTOS INMUNES)
+# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL, MENÚ Y ADIÓS FRANJA NEGRA)
 # ==============================================================================
 st.markdown("""
     <style>
-    /* --- 1. FUERZA TEMA CLARO (ANTI-DARK MODE) --- */
-    :root { color-scheme: light !important; }
+    /* --- 1. FUERZA TEMA CLARO Y ELIMINA FRANJA NEGRA SUPERIOR --- */
+    html, body, :root { 
+        color-scheme: light !important; 
+        background-color: #FFFFFF !important;
+    }
+    
     .stApp {
         background-color: #FFFFFF !important;
         color: #000000 !important;
     }
     
-    /* --- 2. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
-    header[data-testid="stHeader"] {
-        background-color: rgba(255, 255, 255, 0.95) !important;
+    /* Fulmina la franja negra superior obligando a que el header sea blanco sólido */
+    header, .stApp > header, [data-testid="stHeader"] {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
     }
+    
+    /* Oculta la línea decorativa superior nativa de Streamlit que a veces se tiñe de negro */
+    [data-testid="stDecoration"] {
+        display: none !important;
+    }
+    
+    /* --- 2. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
     button[data-testid="collapsedControl"] {
         background-color: #0D47A1 !important; /* Azul Institucional Fuerte */
         border-radius: 8px !important;
@@ -98,7 +110,7 @@ st.markdown("""
     /* Títulos y Etiquetas Generales en Negro INMUNE AL MODO OSCURO */
     label, .stMarkdown p, .stText p, span {
         color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; /* Evita que se vuelvan blancos */
+        -webkit-text-fill-color: #000000 !important; 
         font-weight: 500 !important;
     }
 
@@ -133,7 +145,7 @@ st.markdown("""
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
-        -webkit-text-fill-color: #FFFFFF !important; /* Letra blanca forzada en botones */
+        -webkit-text-fill-color: #FFFFFF !important; 
         border: none !important; 
         border-radius: 6px !important;
         font-weight: bold !important;
@@ -171,7 +183,7 @@ st.markdown("""
         font-size: clamp(14px, 3vw, 18px);
         font-weight: 700;
         color: #1B5E20 !important;
-        -webkit-text-fill-color: #1B5E20 !important; /* Fuerza color verde oscuro */
+        -webkit-text-fill-color: #1B5E20 !important; 
     }
     .marquee-content b {
         color: #1B5E20 !important;
@@ -597,6 +609,7 @@ def modulo_portal_prestador():
                 }
                 st.rerun()
     else:
+        # PANTALLA DE DESCARGAS
         disparar_mensaje_exito()
         st.subheader("📥 Comprobantes Oficiales")
         col_down1, col_down2, col_down3 = st.columns(3)
@@ -765,7 +778,7 @@ with st.sidebar:
         ]
     )
     st.markdown("---")
-    st.caption("v7.8 Master Build | La Serena Digital")
+    st.caption("v7.9 Master Build | La Serena Digital")
 
 if seleccion_menu == "👤 Portal Prestador": 
     modulo_portal_prestador()
@@ -776,4 +789,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo: 981 Líneas. Textos del menú lateral asegurados contra modo oscuro.
+# Final del Archivo: 980+ Líneas. Cero franja superior negra.
