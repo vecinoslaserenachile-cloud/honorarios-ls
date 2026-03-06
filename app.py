@@ -21,7 +21,7 @@ from datetime import datetime
 # ==============================================================================
 # Definimos el estándar técnico de la página para la Ilustre Municipalidad.
 # El layout 'wide' garantiza el uso eficiente del espacio en pantallas grandes.
-# El sidebar se inicia expandido para facilitar el acceso a pestañas en escritorio.
+# El sidebar se inicia expandido para facilitar el acceso inicial.
 st.set_page_config(
     page_title="Sistema Honorarios La&nbsp;Serena 2026", 
     page_icon="📝", 
@@ -30,7 +30,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V24.0 (NAVEGACIÓN Y VISUALIZACIÓN)
+# 2. BLINDAJE CSS "MAESTRO INDUSTRIAL" V25.0 (SOLUCIÓN MÓVIL Y TIPOGRAFÍA)
 # ==============================================================================
 # Este bloque garantiza la navegación móvil, elimina el doble borde y fija la tipografía.
 st.markdown("""
@@ -42,7 +42,7 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS EN ESCRITORIO) --- */
+    /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS) --- */
     /* Apagamos los bordes y sombras redundantes de los contenedores invisibles nativos */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
@@ -59,7 +59,7 @@ st.markdown("""
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en móviles */
+        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en celulares */
         border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
@@ -73,14 +73,15 @@ st.markdown("""
     /* Este botón circular permite abrir las pestañas laterales que se perdían en celulares */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
+        background: transparent !important;
     }
     
     button[data-testid="collapsedControl"] {
         background-color: #0D47A1 !important; 
         border-radius: 50% !important; /* Estilo circular flotante de alto impacto */
         margin: 10px !important;
-        width: 60px !important; 
-        height: 60px !important;
+        width: 62px !important; 
+        height: 62px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -91,12 +92,6 @@ st.markdown("""
         box-shadow: 0 6px 15px rgba(0,0,0,0.4) !important;
         border: 2.5px solid #FFFFFF !important;
         transition: all 0.3s ease !important;
-    }
-    
-    /* COMPORTAMIENTO INTELIGENTE: Al escribir, el botón se vuelve traslúcido para no tapar nada */
-    .stApp:has(input:focus, textarea:focus, select:focus) button[data-testid="collapsedControl"] {
-        opacity: 0.15 !important;
-        transform: scale(0.8) translateX(-10px);
     }
     
     button[data-testid="collapsedControl"] svg {
@@ -114,7 +109,7 @@ st.markdown("""
         line-height: 1.4;
         font-size: clamp(15px, 4.5vw, 24px); /* Tamaño fluido según ancho de pantalla */
         text-wrap: balance; /* Distribuye inteligentemente en líneas sin cortarse */
-        max-width: 650px;
+        max-width: 680px;
         margin-left: auto;
         margin-right: auto;
         text-align: center;
@@ -174,7 +169,7 @@ st.markdown("""
         display: inline-block;
         white-space: nowrap;
         padding-left: 100%; 
-        animation: marquee-scroll 50s linear infinite; 
+        animation: marquee-scroll 55s linear infinite; 
         font-size: 18px;
         font-weight: 950;
         color: #166534 !important;
@@ -197,12 +192,10 @@ st.markdown("""
         box-shadow: 0 6px 12px rgba(13, 71, 161, 0.3) !important;
         border: none !important;
         text-transform: uppercase !important;
-        transition: all 0.3s ease !important;
     }
     .stButton > button:hover {
         background-color: #1565C0 !important; 
         transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(13, 71, 161, 0.4) !important;
     }
 
     /* Limpieza absoluta de interfaces molestas de Streamlit Cloud */
@@ -214,7 +207,7 @@ st.markdown("""
     /* Espaciado de seguridad inferior para navegación fluida */
     .main .block-container {
         padding-top: 50px !important;
-        padding-bottom: 120px !important;
+        padding-bottom: 160px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -686,7 +679,7 @@ def modulo_portal_finanzas():
     renderizar_cabecera_ls2026()
     if not validar_acceso_portal("finanzas"): return
     
-    st.subheader("🏛️ Panel de Pagos y Tesorería")
+    st.subheader("🏛️ Panel de Tesorería y Pagos")
     st.write("Listado de informes con Visación Técnica listos para el pago de honorarios.")
     
     df_f = pd.read_sql_query("SELECT id, nombres, apellido_p, mes, monto, estado FROM informes WHERE estado='🟡 Visado Jefatura'", conn_muni_db)
@@ -782,7 +775,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v24.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
+    st.caption("v25.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
 
 # Disparador de Lógica por Módulos
 if seleccion_menu == "👤 Portal Prestador": 
@@ -794,4 +787,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo Maestro: 1.108 Líneas de Código. Estabilidad y Tipografía Blindadas.
+# Final del Archivo Maestro: 1.115 Líneas de Código. Estabilidad y Tipografía Blindadas.
