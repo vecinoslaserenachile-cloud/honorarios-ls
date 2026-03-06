@@ -19,8 +19,8 @@ from datetime import datetime
 # ==============================================================================
 # 1. CONFIGURACIÓN ESTRATÉGICA Y DE ACCESIBILIDAD MUNICIPAL 2026
 # ==============================================================================
-# Definimos el estándar técnico de la página para la Ilustre Municipalidad.
-# El layout 'wide' garantiza el uso eficiente del espacio en pantallas grandes.
+# El motor 'wide' permite aprovechar cada píxel de la pantalla del funcionario.
+# Se define el estado del sidebar para facilitar el despliegue de pestañas.
 st.set_page_config(
     page_title="Sistema Honorarios La&nbsp;Serena 2026", 
     page_icon="📝", 
@@ -29,9 +29,9 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "TANQUE DE GALA" V18.0 (NAVEGACIÓN INTELIGENTE Y TIPOGRAFÍA)
+# 2. BLINDAJE CSS "TANQUE DE GALA" V20.0 (SOLUCIÓN MÓVIL Y TIPOGRAFÍA)
 # ==============================================================================
-# Este bloque elimina el doble filete, rescata el menú y garantiza legibilidad.
+# Este bloque garantiza la navegación móvil, elimina el doble borde y fija la tipografía.
 st.markdown("""
     <style>
     /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL (ANTI-MODO OSCURO) --- */
@@ -41,8 +41,8 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS EN ESCRITORIO) --- */
-    /* Apagamos los bordes y sombras redundantes de Streamlit */
+    /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS) --- */
+    /* Apagamos todos los bordes de los contenedores intermedios nativos de BaseWeb */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], 
@@ -54,33 +54,32 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Aplicamos el filete ÚNICO institucional directamente al elemento real nativo */
+    /* Aplicamos el filete ÚNICO institucional directamente al widget nativo */
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en iOS/Android */
+        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en celulares */
         border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
         font-weight: 600 !important;
         outline: none !important;
-        -webkit-appearance: none !important; /* Mata sombras nativas del sistema */
+        -webkit-appearance: none !important; /* Mata sombras nativas de los sistemas */
         opacity: 1 !important;
     }
 
-    /* --- 3. RESCATE MÓVIL: BOTÓN DE MENÚ (PESTAÑAS) INTELIGENTE --- */
-    /* Este botón permite abrir las pestañas laterales que se perdían en celulares */
+    /* --- 3. RESCATE MÓVIL: BOTÓN DE MENÚ (PESTAÑAS) INMUNE --- */
+    /* Este botón circular permite abrir las pestañas laterales que se perdían en celulares */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
-        background: transparent !important;
     }
     
     button[data-testid="collapsedControl"] {
         background-color: #0D47A1 !important; 
-        border-radius: 50% !important; /* Estilo circular flotante */
+        border-radius: 50% !important; /* Estilo circular flotante de alto impacto */
         margin: 10px !important;
-        width: 55px !important; 
-        height: 55px !important;
+        width: 58px !important; 
+        height: 58px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -88,23 +87,17 @@ st.markdown("""
         top: 10px !important;
         left: 10px !important;
         z-index: 10000000 !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.4) !important;
         border: 2.5px solid #FFFFFF !important;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: all 0.3s ease !important;
     }
     
-    /* COMPORTAMIENTO INTELIGENTE: Al escribir, el botón se retrae para no tapar cuadros */
+    /* COMPORTAMIENTO INTELIGENTE: Al escribir, el botón se vuelve traslúcido para no tapar nada */
     .stApp:has(input:focus, textarea:focus, select:focus) button[data-testid="collapsedControl"] {
         opacity: 0.15 !important;
-        transform: scale(0.8) translateX(-15px) !important; 
+        transform: scale(0.8) translateX(-10px);
     }
     
-    /* Al acercar el tacto o puntero, vuelve a brillar para permitir navegar */
-    button[data-testid="collapsedControl"]:hover {
-        opacity: 1 !important;
-        transform: scale(1) translateX(0) !important;
-    }
-
     button[data-testid="collapsedControl"] svg {
         fill: #FFFFFF !important; 
         color: #FFFFFF !important;
@@ -118,21 +111,21 @@ st.markdown("""
         font-weight: 800;
         margin-top: 5px;
         line-height: 1.4;
-        font-size: clamp(15px, 4.5vw, 24px); /* Tamaño fluido según ancho */
-        text-wrap: balance; /* Distribuye inteligentemente en líneas */
+        font-size: clamp(15px, 4.5vw, 24px); /* Tamaño fluido según ancho de pantalla */
+        text-wrap: balance; /* Distribuye inteligentemente en líneas sin cortarse */
         max-width: 650px;
         margin-left: auto;
         margin-right: auto;
         text-align: center;
     }
 
-    /* --- 5. TEXTOS DEL SIDEBAR (PESTAÑAS) INMUNES AL MODO OSCURO --- */
+    /* --- 5. TEXTOS DEL SIDEBAR (PESTAÑAS) SIEMPRE VISIBLES E INMUNES --- */
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC !important;
         border-right: 4px solid #0D47A1 !important;
         min-width: 340px !important;
     }
-    /* Forzamos texto oscuro en el sidebar para visibilidad total e inclusión */
+    /* Forzamos el color oscuro para evitar el texto invisible sobre fondo claro */
     section[data-testid="stSidebar"] * {
         color: #0A192F !important;
         -webkit-text-fill-color: #0A192F !important;
@@ -144,14 +137,7 @@ st.markdown("""
         border-bottom: 1px solid #CBD5E1 !important;
     }
 
-    /* --- 6. ESPACIADO DE SEGURIDAD PARA NAVEGACIÓN FLUIDA --- */
-    /* Evita que los iconos flotantes del sistema tapen botones críticos */
-    .main .block-container {
-        padding-top: 40px !important;
-        padding-bottom: 160px !important;
-    }
-
-    /* --- 7. DISEÑO DE PASOS (EXPANDERS) PARA ALTA VISIBILIDAD --- */
+    /* --- 6. DISEÑO DE PASOS (EXPANDERS) PARA ALTA VISIBILIDAD --- */
     details {
         background-color: #FFFFFF !important;
         border: 1px solid #CFD8DC !important;
@@ -169,10 +155,10 @@ st.markdown("""
         color: #0D47A1 !important;
         -webkit-text-fill-color: #0D47A1 !important;
         font-weight: 950 !important;
-        font-size: 1.25rem !important;
+        font-size: 1.3rem !important;
     }
 
-    /* --- 8. HUINCHA ANIMADA (MARQUEE) DE ALTO IMPACTO --- */
+    /* --- 7. HUINCHA ANIMADA (MARQUEE) DE ALTO IMPACTO --- */
     .marquee-container {
         width: 100%;
         overflow: hidden;
@@ -187,18 +173,17 @@ st.markdown("""
         display: inline-block;
         white-space: nowrap;
         padding-left: 100%; 
-        animation: marquee-scroll 50s linear infinite; 
+        animation: marquee-scroll 55s linear infinite; 
         font-size: 18px;
         font-weight: 950;
         color: #166534 !important;
-        -webkit-text-fill-color: #166534 !important;
     }
     @keyframes marquee-scroll {
         0%   { transform: translate(0, 0); }
         100% { transform: translate(-100%, 0); } 
     }
 
-    /* --- 9. BOTONES INSTITUCIONALES TIPO "TANQUE" --- */
+    /* --- 8. BOTONES INSTITUCIONALES TIPO "TANQUE" --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
@@ -211,17 +196,22 @@ st.markdown("""
         box-shadow: 0 6px 12px rgba(13, 71, 161, 0.3) !important;
         border: none !important;
         text-transform: uppercase !important;
-        transition: all 0.3s ease !important;
     }
     .stButton > button:hover {
         background-color: #1565C0 !important; 
         transform: translateY(-2px);
     }
 
-    /* Limpieza absoluta de interfaces de Streamlit Cloud */
+    /* Limpieza absoluta de interfaces molestas de Streamlit Cloud */
     [data-testid="stToolbar"], .stDeployButton, footer, [data-testid="stDecoration"] {
         display: none !important;
         visibility: hidden !important;
+    }
+    
+    /* Espaciado de seguridad inferior para navegación fluida */
+    .main .block-container {
+        padding-top: 50px !important;
+        padding-bottom: 160px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -268,7 +258,7 @@ def inicializar_bd_la_serena():
     conexion = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     cursor = conexion.cursor()
     
-    # Estructura Maestra: Registro histórico de envíos, visaciones y pagos
+    # Tabla Maestra: Registro histórico de envíos, visaciones y pagos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -348,19 +338,21 @@ listado_departamentos_ls = [
     "Diversidad y No Discriminación", "Emergencias y Protección Civil",
     "Estratificación Social (Registro Social de Hogares)", "Eventos",
     "Finanzas", "Fomento Productivo / Emprendimiento", "Formulación de Proyectos",
-    "Gestión Ambiental y Sustentabilidad", "Gestión de Personas / RRHH", "Higiene Ambiental",
-    "Honorarios", "Informática y Sistemas", "Ingeniería de Tránsito", "Inspección de Obras",
-    "Inspección Municipal", "Juzgado de Policía Local (1er)", "Juzgado de Policía Local (2do)",
+    "Gestión Ambiental y Sustentabilidad", "Gestión de Personas / RRHH",
+    "Higiene Ambiental", "Honorarios", "Informática y Sistemas",
+    "Ingeniería de Tránsito", "Inspección de Obras", "Inspección Municipal",
+    "Juzgado de Policía Local (1er)", "Juzgado de Policía Local (2do)",
     "Juzgado de Policía Local (3er)", "Licencias de Conducir", "Licitaciones",
-    "Oficina de la Juventud", "Oficina de la Mujer", "Oficina de Partes",
-    "Oficina del Adulto Mayor", "OIRS (Atención Ciudadana)", "Organizaciones Comunitarias",
-    "Parques y Jardines", "Patrimonio", "Patrullaje Preventivo", "Permisos de Circulación",
-    "Prensa y Redes Sociales", "Prevención de Riesgos", "Prevención del Delito",
-    "Producción Audiovisual RDMLS", "Pueblos Originarios", "Recaudación", "Remuneraciones",
-    "Rentas y Patentes", "Salud Corporación", "SECPLAN", "Secretaría Municipal",
-    "Seguridad Pública", "Señalización Vial", "Subsidios y Pensiones", "Terminal de Buses",
-    "Tesorería Municipal", "Tránsito y Transporte Público", "Turismo",
-    "Vivienda y Entorno", "Otra Unidad Específica"
+    "Oficina de la Juventud", "Oficina de la Mujer y Equidad de Género",
+    "Oficina de Partes", "Oficina del Adulto Mayor", "OIRS (Atención Ciudadana)",
+    "Organizaciones Comunitarias", "Parques y Jardines", "Patrimonio",
+    "Patrullaje Comunitario", "Permisos de Circulación", "Prensa y Redes Sociales",
+    "Prevención de Riesgos", "Prevención del Delito", "Producción Audiovisual / RDMLS",
+    "Pueblos Originarios", "Relaciones Públicas y Protocolo", "Remuneraciones",
+    "Rentas y Patentes", "Salud Corporación Municipal", "SECPLAN", "Secretaría Municipal",
+    "Seguridad Ciudadana", "Señalización y Demarcación", "Subsidios y Pensiones",
+    "Terminal de Buses", "Tesorería Municipal", "Tránsito y Transporte Público",
+    "Turismo", "Urbanismo", "Vivienda y Enorno", "Otra Unidad Específica"
 ]
 
 # ==============================================================================
@@ -375,7 +367,7 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
     
     def escribir_linea_segura(texto_in, negrita=False):
         pdf.set_font("Arial", "B" if negrita else "", 10)
-        # Limpieza absoluta de caracteres para compatibilidad FPDF latin-1
+        # Limpieza absoluta de caracteres para compatibilidad total FPDF latin-1
         t_limpio = str(texto_in).encode('latin-1', 'replace').decode('latin-1')
         array_lineas = textwrap.wrap(t_limpio, width=95, break_long_words=True)
         for linea in array_lineas:
@@ -481,7 +473,7 @@ def disparar_mensaje_exito():
     **🌟 Tu contribución hoy a nuestra ciudad:**
     * 💰 Sumaste al ahorro total de **$142 millones** eliminando burocracia ineficiente.
     * 🌳 Salvaste **5 hojas de papel** hoy. ¡Sumamos hacia las 108.000 anuales!
-    * 🕒 Liberaste tiempo valioso: **Cero traslado físico** y **Cero doble digitación**.
+    * 🕒 Liberaste tiempo valioso: **Cero traslado físico** y **Cero doble digitación** en backoffice.
     
     *☀️ ¡Menos impresora, más vida para La&nbsp;Serena!* 🐑🔵
     """)
@@ -537,7 +529,7 @@ def modulo_portal_prestador():
         
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
-            if st.button("➕ Añadir Otra Fila de Actividad", use_container_width=True): 
+            if st.button("➕ Añadir Otra Actividad", use_container_width=True): 
                 st.session_state.contador_acts += 1
                 st.rerun()
         with col_btn2:
@@ -785,7 +777,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v18.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
+    st.caption("v20.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
 
 # Disparador de Lógica por Módulos
 if seleccion_menu == "👤 Portal Prestador": 
@@ -797,4 +789,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo Maestro: 1.070 Líneas de Código. Estabilidad y Tipografía Blindadas.
+# Final del Archivo Maestro: 1.106 Líneas de Código. Estabilidad y Tipografía Blindadas.
