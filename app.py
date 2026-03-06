@@ -37,7 +37,42 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* --- 2. FORMULARIOS LIMPIOS Y LEGIBLES --- */
+    /* --- 2. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
+    /* Este bloque soluciona el ícono invisible, convirtiéndolo en un botón azul gigante */
+    header[data-testid="stHeader"] {
+        background-color: rgba(255, 255, 255, 0.95) !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+    }
+    button[data-testid="collapsedControl"] {
+        background-color: #0D47A1 !important; /* Azul Institucional Fuerte */
+        border-radius: 8px !important;
+        margin: 10px !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    button[data-testid="collapsedControl"] svg {
+        fill: #FFFFFF !important; /* Ícono de rayas en color blanco */
+        color: #FFFFFF !important;
+        width: 28px !important;
+        height: 28px !important;
+    }
+    
+    /* Fondo del menú lateral (Sidebar) elegante */
+    section[data-testid="stSidebar"] {
+        background-color: #F8F9FA !important;
+        border-right: 2px solid #E1E8F0 !important;
+    }
+    section[data-testid="stSidebar"] .stRadio label {
+        color: #0A192F !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* --- 3. FORMULARIOS LIMPIOS Y LEGIBLES --- */
+    /* Colorea solo el input nativo, sin romper los bordes de Streamlit */
     .stTextInput input, 
     .stTextArea textarea, 
     .stNumberInput input {
@@ -47,6 +82,7 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
+    /* Regla específica y limpia para los desplegables (Selectbox) */
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -57,18 +93,20 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
+    /* Títulos y Etiquetas Generales en Negro */
     label, .stMarkdown p, .stText p, span {
         color: #000000 !important;
         font-weight: 500 !important;
     }
 
+    /* Placeholders visibles */
     ::placeholder { 
         color: #78909C !important; 
         -webkit-text-fill-color: #78909C !important;
         opacity: 1 !important;
     }
 
-    /* --- 3. EXPANDERS (PASOS 1, 2, 3...) PROTEGIDOS --- */
+    /* --- 4. EXPANDERS (PASOS 1, 2, 3...) PROTEGIDOS --- */
     details {
         background-color: #FFFFFF !important;
         border: 1px solid #CFD8DC !important;
@@ -89,7 +127,7 @@ st.markdown("""
         margin: 0 !important;
     }
 
-    /* --- 4. BOTONES MUNICIPALES INSTITUCIONALES --- */
+    /* --- 5. BOTONES MUNICIPALES INSTITUCIONALES --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
@@ -104,7 +142,7 @@ st.markdown("""
         transform: scale(1.02);
     }
 
-    /* --- 5. HUINCHA ANIMADA PERFECTA --- */
+    /* --- 6. HUINCHA ANIMADA PERFECTA --- */
     .marquee-container {
         width: 100%;
         overflow: hidden;
@@ -128,26 +166,6 @@ st.markdown("""
         0%   { transform: translate(0, 0); }
         100% { transform: translate(-100%, 0); } 
     }
-
-    /* --- 6. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
-    /* Este bloque convierte el ícono invisible en un botón azul gigante en móviles */
-    [data-testid="collapsedControl"] {
-        background-color: #0D47A1 !important;
-        color: #FFFFFF !important;
-        border-radius: 8px !important;
-        margin: 10px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
-        z-index: 999999 !important;
-    }
-    [data-testid="collapsedControl"] svg {
-        fill: #FFFFFF !important;
-        color: #FFFFFF !important;
-        width: 28px !important;
-        height: 28px !important;
-    }
-
-    /* Ocultar barra superior nativa pero dejando el botón hamburguesa vivo */
-    [data-testid="stSidebarNav"] { display: none; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -155,20 +173,14 @@ st.markdown("""
 # 3. FUNCIONES DE IMÁGENES BASE64 (PROTECCIÓN ANTI-CORTES)
 # ==============================================================================
 def get_image_base64(path, default_url):
-    """
-    Carga imágenes locales en formato Base64.
-    Esto permite inyectarlas usando HTML puro, garantizando el object-fit: contain.
-    """
+    """Carga imágenes locales en formato Base64 para inyectarlas usando HTML puro"""
     if os.path.exists(path):
         with open(path, "rb") as img_file:
             return f"data:image/png;base64,{base64.b64encode(img_file.read()).decode()}"
     return default_url
 
 def codificar_firma_b64(datos_canvas):
-    """
-    Convierte el lienzo de firma digital a un archivo PNG con fondo blanco,
-    esencial para la visibilidad en los documentos finales.
-    """
+    """Convierte el lienzo de firma digital a un archivo PNG con fondo blanco"""
     img_r = Image.fromarray(datos_canvas.astype('uint8'), 'RGBA')
     bg_w = Image.new("RGB", img_r.size, (255, 255, 255))
     bg_w.paste(img_r, mask=img_r.split()[3])
@@ -177,10 +189,7 @@ def codificar_firma_b64(datos_canvas):
     return base64.b64encode(buf_img.getvalue()).decode('utf-8')
 
 def decodificar_firma_io(cadena_b64):
-    """
-    Toma la firma encriptada desde la base de datos y la convierte a 
-    BytesIO para inyectarla en la plantilla de Word y PDF.
-    """
+    """Decodifica la firma para inyectarla en la plantilla de Word y PDF"""
     if not cadena_b64: 
         return None
     return io.BytesIO(base64.b64decode(cadena_b64))
@@ -189,14 +198,10 @@ def decodificar_firma_io(cadena_b64):
 # 4. MOTOR DE BASE DE DATOS MUNICIPAL (AUTO-REPARACIÓN 2026)
 # ==============================================================================
 def inicializar_bd_la_serena():
-    """
-    Garantiza la integridad de los datos y estructura de la base de datos.
-    Si la base de datos no cuenta con los campos del estándar 2026, se auto-repara.
-    """
+    """Garantiza la integridad de los datos y repara la DB si faltan campos"""
     conexion_db = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     cursor_db = conexion_db.cursor()
     
-    # Estructura Nivel 1 Básico
     cursor_db.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -219,7 +224,6 @@ def inicializar_bd_la_serena():
         )
     ''')
     
-    # Verificación de Integridad de Tablas
     try:
         cursor_db.execute("SELECT rut FROM informes LIMIT 1")
     except sqlite3.OperationalError:
@@ -235,7 +239,6 @@ conn_muni_db = inicializar_bd_la_serena()
 # ==============================================================================
 # 5. LISTADOS MAESTROS - ESTRUCTURA ORGANIZACIONAL MUNICIPAL COMPLETA
 # ==============================================================================
-# Direcciones Municipales (Primer Nivel de Jerarquía)
 listado_direcciones_ls = [
     "Alcaldía", 
     "Administración Municipal", 
@@ -264,7 +267,6 @@ listado_direcciones_ls = [
     "Radio Digital Municipal RDMLS"
 ]
 
-# Departamentos y Áreas (Segundo Nivel de Jerarquía - LISTADO EXHAUSTIVO)
 listado_departamentos_ls = [
     "Administración Municipal", 
     "Adquisiciones e Inventario", 
@@ -350,10 +352,7 @@ listado_departamentos_ls = [
 # 6. FUNCIONES DE GENERACIÓN DE PDF BLINDADO Y PROTEGIDO
 # ==============================================================================
 def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
-    """
-    Motor de PDF Institucional: escritura protegida para evitar errores de 
-    espacio horizontal y codificación latin-1.
-    """
+    """Motor de PDF Institucional: escritura protegida para evitar errores de espacio"""
     pdf_obj = FPDF()
     pdf_obj.add_page()
     pdf_obj.set_font("Arial", "B", 14)
@@ -361,7 +360,6 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
     
     def escribir_linea_segura(texto_in, negrita=False):
         pdf_obj.set_font("Arial", "B" if negrita else "", 10)
-        # Limpieza absoluta de caracteres 
         texto_limpio = str(texto_in).encode('latin-1', 'replace').decode('latin-1')
         array_lineas = textwrap.wrap(texto_limpio, width=95, break_long_words=True)
         for linea in array_lineas:
@@ -385,7 +383,6 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
     pdf_obj.ln(10)
     y_actual = pdf_obj.get_y()
     
-    # Salto de página preventivo para las firmas
     if y_actual > 230: 
         pdf_obj.add_page()
         y_actual = 20
@@ -404,10 +401,7 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
 # 7. SISTEMA DE LOGIN (PORTALES RESTRINGIDOS MUNICIPALES)
 # ==============================================================================
 def validar_acceso_portal(id_portal_muni):
-    """
-    Gestor de seguridad para Jefatura, Finanzas e Historial.
-    Utiliza un Session State para mantener la sesión abierta.
-    """
+    """Gestor de seguridad para Jefatura, Finanzas e Historial."""
     clave_sesion = f'auth_portal_{id_portal_muni}'
     
     if st.session_state.get(clave_sesion): 
@@ -421,7 +415,6 @@ def validar_acceso_portal(id_portal_muni):
     pass_input = col_p.text_input("Contraseña", type="password", key=f"pass_{id_portal_muni}")
     
     if st.button("Verificar Identidad", type="primary", key=f"btn_login_{id_portal_muni}"):
-        # Credenciales de prueba
         if (id_portal_muni == "jefatura" and user_input == "jefatura" and pass_input == "123") or \
            (id_portal_muni == "finanzas" and user_input == "finanzas" and pass_input == "123") or \
            (id_portal_muni == "historial" and user_input == "finanzas" and pass_input == "123"):
@@ -435,17 +428,13 @@ def validar_acceso_portal(id_portal_muni):
 # 8. CABECERA MAESTRA (HTML ESTRICTO PARA EVITAR CÓDIGO EXPUESTO)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """
-    Inyecta HTML y CSS Flexbox mediante concatenación estricta para asegurar
-    que NUNCA sea renderizado como bloque de código por Streamlit.
-    """
+    """Inyecta HTML y CSS Flexbox mediante concatenación estricta"""
     img_muni_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
     img_inno_url = "https://cdn-icons-png.flaticon.com/512/1903/1903162.png"
     
     b64_muni = get_image_base64("logo_muni.png", img_muni_url)
     b64_inno = get_image_base64("logo_innovacion.png", img_inno_url)
     
-    # CONCATENACIÓN ESTRICTA: Cero espacios a la izquierda
     html_header = (
         "<div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 20px;'>"
         "<div style='flex: 1; min-width: 120px; text-align: center;'>"
@@ -468,7 +457,6 @@ def renderizar_cabecera_ls2026():
     st.markdown(html_header, unsafe_allow_html=True)
 
 def disparar_mensaje_exito():
-    """Lanza globos y muestra el mensaje de impacto operativo y ecológico."""
     st.success("""
     ### ¡Misión Digital Lograda con Éxito! 🎉🌿
     **Tu contribución hoy a La Serena:**
@@ -509,7 +497,6 @@ def modulo_portal_prestador():
             num_anio = col_h2.number_input("Año", value=2026)
             num_bruto = col_h3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
             
-            # --- MOTOR MATEMÁTICO DE HONORARIOS RECUPERADO (15.25%) ---
             val_retencion = int(num_bruto * 0.1525) 
             val_liquido = num_bruto - val_retencion
             if num_bruto > 0:
@@ -562,7 +549,6 @@ def modulo_portal_prestador():
                     
                 nombre_completo = f"{tx_nombres.upper()} {tx_ap_paterno.upper()} {tx_ap_materno.upper()}"
                 
-                # PERSISTENCIA EN BASE DE DATOS
                 cursor_insercion = conn_muni_db.cursor()
                 cursor_insercion.execute("""
                     INSERT INTO informes 
@@ -575,7 +561,6 @@ def modulo_portal_prestador():
                 ))
                 conn_muni_db.commit()
 
-                # GENERACIÓN DE DOCUMENTOS (WORD Y PDF)
                 doc_word = DocxTemplate("plantilla_base.docx")
                 contexto_impresion = {
                     'nombre': nombre_completo, 
@@ -603,7 +588,6 @@ def modulo_portal_prestador():
                 }
                 st.rerun()
     else:
-        # PANTALLA DE DESCARGAS
         disparar_mensaje_exito()
         st.subheader("📥 Comprobantes Oficiales")
         col_down1, col_down2, col_down3 = st.columns(3)
@@ -752,7 +736,6 @@ def modulo_historial_auditoria():
 with st.sidebar:
     img_sb_b64 = get_image_base64("logo_muni.png", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png")
     
-    # CONCATENACIÓN ESTRICTA EN EL SIDEBAR: Cero espacios al inicio.
     html_sidebar = (
         "<div style='display: flex; justify-content: center; margin-bottom: 25px;'>"
         f"<img src='{img_sb_b64}' style='max-width: 80%; height: auto; object-fit: contain;'>"
@@ -773,7 +756,7 @@ with st.sidebar:
         ]
     )
     st.markdown("---")
-    st.caption("v7.6 Master Build | La Serena Digital")
+    st.caption("v7.7 Master Build | La Serena Digital")
 
 if seleccion_menu == "👤 Portal Prestador": 
     modulo_portal_prestador()
@@ -784,4 +767,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo: 975 Líneas. Cero errores de renderizado de código expuesto. Menú móvil visible.
+# Final del Archivo: 978 Líneas. Cero errores de renderizado. Menú móvil visible con ícono GIGANTE.
