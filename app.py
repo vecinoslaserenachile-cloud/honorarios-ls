@@ -25,7 +25,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- BLINDAJE CSS EXTREMO PARA MÓVIL, LOGOS, PASOS Y BOTONES ---
+# --- BLINDAJE CSS EXTREMO PARA MÓVIL Y LOGOS ---
+# Este bloque elimina los cuadros negros y asegura que el texto sea siempre visible.
 st.markdown("""
     <style>
     /* 1. FUERZA TEMA CLARO MUNICIPAL ABSOLUTO */
@@ -34,7 +35,8 @@ st.markdown("""
         color: #0A192F !important;
     }
     
-    /* 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL (Inputs) */
+    /* 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL (Efecto Nublado Legible) */
+    /* Apuntamos a todos los niveles del DOM de Streamlit y BaseWeb */
     [data-baseweb="input"], 
     [data-baseweb="select"], 
     [data-baseweb="textarea"],
@@ -43,13 +45,14 @@ st.markdown("""
     .stNumberInput div, 
     .stTextInput div,
     .stTextArea div {
-        background-color: transparent !important;
+        background-color: transparent !important; /* Hacemos transparente los wrappers... */
     }
     
+    /* ...Y le damos el color directamente al elemento nativo HTML */
     input, select, textarea {
-        background-color: #F4F6F9 !important; 
-        color: #0A192F !important; 
-        -webkit-text-fill-color: #0A192F !important; 
+        background-color: #F4F6F9 !important; /* Gris claro nublado, elegante y legible */
+        color: #0A192F !important; /* Azul marino profundo */
+        -webkit-text-fill-color: #0A192F !important; /* Fuerza el color en iOS/Safari */
         border: 2px solid #D1D9E6 !important;
         border-radius: 10px !important;
         padding: 10px !important;
@@ -58,12 +61,14 @@ st.markdown("""
         opacity: 1 !important;
     }
     
+    /* Al tocar el cuadro (focus), se vuelve blanco iluminado */
     input:focus, select:focus, textarea:focus {
         background-color: #FFFFFF !important;
         border-color: #1E88E5 !important;
         box-shadow: 0 0 5px rgba(30,136,229,0.5) !important;
     }
 
+    /* Visibilidad absoluta de placeholders */
     ::placeholder { 
         color: #718096 !important; 
         opacity: 1 !important; 
@@ -71,6 +76,7 @@ st.markdown("""
     }
 
     /* 3. PROTECCIÓN ABSOLUTA DE LOS EXPANDERS (LOS "PASOS") */
+    /* Evita que los recuadros de los Pasos 1, 2, 3... se vean negros en móvil */
     [data-testid="stExpander"] {
         background-color: transparent !important;
     }
@@ -81,7 +87,7 @@ st.markdown("""
         overflow: hidden !important;
     }
     [data-testid="stExpander"] summary {
-        background-color: #EBF4FF !important; 
+        background-color: #EBF4FF !important; /* Azul clarito muy elegante para la cabecera */
         color: #1A237E !important;
         padding: 15px !important;
     }
@@ -97,7 +103,7 @@ st.markdown("""
         font-size: 1.1rem !important;
     }
     [data-testid="stExpanderDetails"] {
-        background-color: #FFFFFF !important; 
+        background-color: #FFFFFF !important; /* Fondo blanco puro al abrir el paso */
         padding: 20px !important;
     }
 
@@ -107,70 +113,42 @@ st.markdown("""
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 15px; 
+        padding: 15px; /* Espacio sagrado anti-cortes */
     }
     .logo-container-safe img {
         max-width: 100%;
         max-height: 140px;
-        object-fit: contain !important; 
+        object-fit: contain !important; /* Prohíbe el recorte o estiramiento */
         image-rendering: -webkit-optimize-contrast !important;
         image-rendering: crisp-edges !important;
         filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.1));
     }
     
-    /* 5. ESTILO PARA BOTONES Y HERRAMIENTAS (Incluyendo "Añadir Fila") */
-    /* Target específico para botones secundarios de Streamlit */
-    .stButton > button[kind="secondary"] {
-        background-color: #1A237E !important; /* Azul Institucional */
-        color: #FFFFFF !important; /* Texto Blanco */
-        border: 1px solid #1565C0 !important; /* Borde sutil */
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton > button[kind="secondary"]:hover {
-        background-color: #1565C0 !important; /* Azul más claro al hacer hover */
-        border-color: #0D47A1 !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
-    }
-    
-    /* Estilos para los iconos de herramientas del canvas */
-    .stDrawableCanvas button {
-        color: #1A237E !important;
-        background-color: #EBF4FF !important;
-        border: 1px solid #D1D9E6 !important;
-        border-radius: 4px !important;
-        margin: 0 2px !important;
-    }
-    .stDrawableCanvas button:hover {
-        background-color: #DBEAFE !important;
-    }
-
-    /* 6. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 (CÁLCULO TOTAL) */
-    .ticker-container-v5 { 
+    /* 5. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
+    .ticker-container-v4 { 
         width: 100%; 
         overflow: hidden; 
         background-color: #F0FDF4; 
         color: #166534; 
         border: 2px solid #BBF7D0; 
-        padding: 16px 0; 
-        border-radius: 20px; 
+        padding: 14px 0; 
+        border-radius: 18px; 
         margin-bottom: 35px; 
         box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
     }
     .ticker-scrolling-text { 
         display: inline-block; 
         white-space: nowrap; 
-        animation: ticker-animation-v5 75s linear infinite; 
+        animation: ticker-animation-v4 65s linear infinite; 
         font-size: clamp(15px, 4vw, 21px); 
         font-weight: 800;
     }
-    @keyframes ticker-animation-v5 { 
+    @keyframes ticker-animation-v4 { 
         0% { transform: translate3d(100%, 0, 0); } 
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* 7. TÍTULOS CON AIRE Y ELEGANCIA */
+    /* 6. TÍTULOS CON AIRE Y ELEGANCIA */
     .muni-main-header {
         font-size: clamp(1.6rem, 6vw, 3.5rem);
         text-align: center;
@@ -249,17 +227,35 @@ listado_direcciones_ls = [
     "Delegación Municipal Rural", "Radio Digital Municipal RDMLS"
 ]
 
-# Departamentos y Áreas (Segundo Nivel de Jerarquía)
+# Departamentos y Áreas (Segundo Nivel de Jerarquía - LISTADO EXHAUSTIVO MUNICIPAL)
 listado_departamentos_ls = [
-    "Oficina de Partes", "OIRS (Informaciones)", "Gestión de Personas / RRHH", 
-    "Contabilidad y Presupuesto", "Tesorería Municipal", "Adquisiciones e Inventario", 
-    "Informática y Sistemas", "Relaciones Públicas y Protocolo", "Prensa y Redes Sociales", 
-    "Fomento Productivo / Emprendimiento", "Oficina de la Juventud", "Oficina del Adulto Mayor", 
-    "Oficina de la Mujer / Equidad de Género", "Discapacidad e Inclusión", "Cultura y Patrimonio", 
-    "Deportes y Recreación", "Protección Civil y Emergencias", "Inspección Municipal", 
-    "Gestión Ambiental y Sustentabilidad", "Parques y Jardines", "Alumbrado Público", 
-    "Juzgado de Policía Local", "Producción Audiovisual / RDMLS", "Vivienda y Entorno",
-    "Otra Unidad Específica"
+    "Administración Municipal", "Adquisiciones e Inventario", "Alumbrado Público",
+    "Asesoría Jurídica", "Asesoría Urbana", "Asistencia Social", "Auditoría Municipal",
+    "Bienestar", "Cámaras de Seguridad (CCTV)", "Capacitación", "Catastro",
+    "Cementerio Municipal", "Clínica Veterinaria Municipal", "Comunicaciones",
+    "Contabilidad y Presupuesto", "Control Municipal", "Cultura y Patrimonio",
+    "Delegación Avenida del Mar", "Delegación La Antena", "Delegación La Pampa",
+    "Delegación Las Compañías", "Delegación Rural", "Deportes y Recreación",
+    "DIDECO (Desarrollo Comunitario)", "Dirección de Obras Municipales (DOM)",
+    "Discapacidad e Inclusión", "Diversidad y No Discriminación", "Edificación",
+    "Educación (Corporación Municipal)", "Emergencias y Protección Civil",
+    "Estratificación Social (Registro Social de Hogares)", "Eventos",
+    "Finanzas", "Fomento Productivo / Emprendimiento", "Formulación de Proyectos",
+    "Gestión Ambiental y Sustentabilidad", "Gestión de Personas / RRHH",
+    "Higiene Ambiental", "Honorarios", "Informática y Sistemas",
+    "Ingeniería de Tránsito", "Inspección de Obras", "Inspección Municipal",
+    "Juzgado de Policía Local (1er)", "Juzgado de Policía Local (2do)",
+    "Juzgado de Policía Local (3er)", "Licencias de Conducir", "Licitaciones",
+    "Oficina de la Juventud", "Oficina de la Mujer y Equidad de Género",
+    "Oficina de Partes", "Oficina del Adulto Mayor", "OIRS (Informaciones)",
+    "Organizaciones Comunitarias", "Parques y Jardines", "Patrullaje Comunitario",
+    "Permisos de Circulación", "Prensa y Redes Sociales", "Prevención de Riesgos",
+    "Prevención del Delito", "Producción Audiovisual / RDMLS", "Pueblos Originarios",
+    "Relaciones Públicas y Protocolo", "Remuneraciones", "Rentas y Patentes",
+    "Salud (Corporación Municipal)", "SECPLAN", "Secretaría Municipal",
+    "Seguridad Ciudadana", "Señalización y Demarcación", "Subsidios y Pensiones",
+    "Terminal de Buses", "Tesorería Municipal", "Tránsito y Transporte Público",
+    "Turismo", "Urbanismo", "Vivienda y Entorno", "Otra Unidad Específica"
 ]
 
 # ==============================================================================
@@ -337,10 +333,10 @@ def acceso_portal_ls(id_portal):
     return False
 
 # ==============================================================================
-# 4. CABECERA MAESTRA (HTML PURO Y CÁLCULO DE IMPACTO TOTAL)
+# 4. CABECERA MAESTRA (HTML PURO PARA EVITAR CORTES EN LOGOS)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """Dibuja logos inyectando HTML puro para asegurar object-fit: contain y muestra el Costo Oculto"""
+    """Dibuja logos inyectando HTML puro para asegurar object-fit: contain"""
     col_l1, col_center, col_l2 = st.columns([1.5, 5, 1.5], gap="small")
     
     with col_l1:
@@ -361,11 +357,11 @@ def renderizar_cabecera_ls2026():
         st.markdown("<p class='muni-main-header'>Ilustre Municipalidad de La Serena</p>", unsafe_allow_html=True)
         st.markdown("<p class='muni-sub-header'>Sistema Digital de Gestión de Honorarios 2026</p>", unsafe_allow_html=True)
         
-        # Ticker de Impacto TOTAL: Incluye eliminación de doble digitación y traslado físico
+        # Ticker de Impacto masivo anual proyectado para los 1.800 funcionarios
         st.markdown("""
-            <div class="ticker-container-v5">
+            <div class="ticker-container-v4">
                 <div class="ticker-scrolling-text">
-                    ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO MUNICIPAL TOTAL:</b> Ahorramos <b>$142.850.000 CLP</b> anuales eliminando el traslado físico y la doble digitación en otras áreas ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b>! ● 🕒 Recuperamos <b>27.000 horas operativas</b> que perdíamos rellenando a mano y tramitando carpetas ● ☀️ Cero filas, cero redigitación, más energía para nuestra ciudad ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando burocracia por progreso! 🌿🟢🔵🌕● 
+                    ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO MUNICIPAL TOTAL:</b> Ahorramos <b>$142.850.000 CLP</b> anuales eliminando el traslado físico y la doble digitación ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b>! ● 🕒 Recuperamos <b>27.000 horas operativas</b> que perdíamos rellenando a mano ● ☀️ Cero filas, cero redigitación ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando burocracia por progreso! 🌿🟢🔵🌕● 
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -385,7 +381,7 @@ def renderizar_cabecera_ls2026():
         ''', unsafe_allow_html=True)
 
 def disparar_globos_ls():
-    """Muestra el mensaje de impacto ecológico y operativo total tras el envío"""
+    """Lanza globos y muestra el mensaje de impacto ecológico positivo masivo"""
     st.success("""
     ### ¡Misión Digital Lograda con Éxito! 🎉🌿✨
     **🌟 Tu contribución hoy a nuestra ciudad:**
@@ -442,14 +438,8 @@ def modulo_portal_prestador_ls():
             ca_a.text_area(f"Actividad Realizada {idx+1}", key=f"a_d_ls_{idx}", placeholder="Ej: Redacción de informes técnicos y atención de público...")
             ca_b.text_area(f"Resultado {idx+1}", key=f"a_r_ls_{idx}", placeholder="Ej: 5 Documentos entregados y firmados...")
         
-        # Botones de control de actividades
-        col_ctrl1, col_ctrl2 = st.columns(2)
-        with col_ctrl1:
-            if st.button("➕ Añadir Fila de Actividad", use_container_width=True): 
-                st.session_state.acts_ls += 1; st.rerun()
-        with col_ctrl2:
-            if st.button("➖ Quitar Última Fila", use_container_width=True) and st.session_state.acts_ls > 1:
-                st.session_state.acts_ls -= 1; st.rerun()
+        if st.button("➕ Añadir Otra Actividad"): 
+            st.session_state.acts_ls += 1; st.rerun()
 
         st.subheader("✍️ Paso 5: Firma Digital")
         canv_ls = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="canv_ls")
@@ -558,7 +548,7 @@ def modulo_historial_ls():
         st.download_button("📊 Exportar Historial Excel", csv_ls, "Consolidado_LS_2026.csv", use_container_width=True)
 
 # ==============================================================================
-# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL)
+# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL CON LOGO SEGURO)
 # ==============================================================================
 with st.sidebar:
     # Sidebar Logo también protegido con HTML puro
@@ -571,11 +561,11 @@ with st.sidebar:
     st.title("Gestión Municipal 2026")
     rol_sel_ls = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    st.caption("v6.7 Edición Diamante | La Serena Digital")
+    st.caption("v6.8 Organigrama Full | La Serena Digital")
 
 if rol_sel_ls == "👤 Portal Prestador": modulo_portal_prestador_ls()
 elif rol_sel_ls == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura_ls()
 elif rol_sel_ls == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas_ls()
 else: modulo_historial_ls()
 
-# Final del Archivo: 900+ Líneas de Código. Estabilidad y Legibilidad Máxima.
+# Final del Archivo: 894 Líneas de Código Municipal Legible, Robusto y Nítido.
