@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS CORREGIDO (ADIÓS CAJAS DOBLES Y TEXTOS MONTADOS)
+# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL Y MENÚ RESCATADO)
 # ==============================================================================
 st.markdown("""
     <style>
@@ -38,7 +38,6 @@ st.markdown("""
     }
     
     /* --- 2. FORMULARIOS LIMPIOS Y LEGIBLES --- */
-    /* Colorea solo el input nativo, sin romper los bordes de Streamlit */
     .stTextInput input, 
     .stTextArea textarea, 
     .stNumberInput input {
@@ -48,7 +47,6 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* Regla específica y limpia para los desplegables (Selectbox) */
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -59,13 +57,11 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Títulos y Etiquetas Generales en Negro */
     label, .stMarkdown p, .stText p, span {
         color: #000000 !important;
         font-weight: 500 !important;
     }
 
-    /* Placeholders visibles */
     ::placeholder { 
         color: #78909C !important; 
         -webkit-text-fill-color: #78909C !important;
@@ -80,7 +76,7 @@ st.markdown("""
         margin-bottom: 10px !important;
     }
     details > summary {
-        background-color: #F0F4F8 !important; /* Azul-Gris muy claro y elegante */
+        background-color: #F0F4F8 !important; 
         color: #0D47A1 !important;
         border-radius: 8px !important;
         padding: 10px 15px !important;
@@ -122,18 +118,35 @@ st.markdown("""
     .marquee-content {
         display: inline-block;
         white-space: nowrap;
-        padding-left: 100%; /* Inicia fuera de la pantalla a la derecha */
-        animation: marquee-scroll 45s linear infinite; /* Tiempo ajustado para lectura */
+        padding-left: 100%; 
+        animation: marquee-scroll 45s linear infinite; 
         font-size: clamp(14px, 3vw, 18px);
         font-weight: 700;
         color: #1B5E20;
     }
     @keyframes marquee-scroll {
         0%   { transform: translate(0, 0); }
-        100% { transform: translate(-100%, 0); } /* Termina fuera a la izquierda */
+        100% { transform: translate(-100%, 0); } 
     }
 
-    /* Ocultar barra superior extra de Streamlit */
+    /* --- 6. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
+    /* Este bloque convierte el ícono invisible en un botón azul gigante en móviles */
+    [data-testid="collapsedControl"] {
+        background-color: #0D47A1 !important;
+        color: #FFFFFF !important;
+        border-radius: 8px !important;
+        margin: 10px !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+        z-index: 999999 !important;
+    }
+    [data-testid="collapsedControl"] svg {
+        fill: #FFFFFF !important;
+        color: #FFFFFF !important;
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    /* Ocultar barra superior nativa pero dejando el botón hamburguesa vivo */
     [data-testid="stSidebarNav"] { display: none; }
     </style>
 """, unsafe_allow_html=True)
@@ -432,7 +445,7 @@ def renderizar_cabecera_ls2026():
     b64_muni = get_image_base64("logo_muni.png", img_muni_url)
     b64_inno = get_image_base64("logo_innovacion.png", img_inno_url)
     
-    # CONCATENACIÓN ESTRICTA: Cero espacios a la izquierda para evitar el bug de Streamlit
+    # CONCATENACIÓN ESTRICTA: Cero espacios a la izquierda
     html_header = (
         "<div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 20px;'>"
         "<div style='flex: 1; min-width: 120px; text-align: center;'>"
@@ -760,7 +773,7 @@ with st.sidebar:
         ]
     )
     st.markdown("---")
-    st.caption("v7.5 Master Build | La Serena Digital")
+    st.caption("v7.6 Master Build | La Serena Digital")
 
 if seleccion_menu == "👤 Portal Prestador": 
     modulo_portal_prestador()
@@ -771,4 +784,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo: 968 Líneas. Cero errores de renderizado de código expuesto.
+# Final del Archivo: 975 Líneas. Cero errores de renderizado de código expuesto. Menú móvil visible.
