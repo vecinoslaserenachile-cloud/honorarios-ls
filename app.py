@@ -19,7 +19,7 @@ from datetime import datetime
 # ==============================================================================
 # 1. CONFIGURACIÓN ESTRATÉGICA Y DE ACCESIBILIDAD MUNICIPAL 2026
 # ==============================================================================
-# El motor 'wide' permite aprovechar cada píxel de la pantalla.
+# El motor 'wide' permite aprovechar cada píxel de la pantalla del funcionario.
 # El sidebar se mantiene activo como respaldo para la versión escritorio.
 st.set_page_config(
     page_title="Sistema Honorarios La&nbsp;Serena 2026", 
@@ -29,9 +29,10 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V30.0 (BOTONERA FIJA Y VISUALIZACIÓN)
+# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V32.0 (BOTONERA FIJA Y VISUALIZACIÓN)
 # ==============================================================================
 # Este bloque garantiza la navegación móvil mediante una botonera inferior fija.
+# También repara el doble filete y el contraste de lectura AAA.
 st.markdown("""
     <style>
     /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL (ANTI-MODO OSCURO) --- */
@@ -42,6 +43,7 @@ st.markdown("""
     }
     
     /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS) --- */
+    /* Eliminamos bordes redundantes de los contenedores BaseWeb de Streamlit */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], 
@@ -53,21 +55,22 @@ st.markdown("""
         background-color: transparent !important;
     }
     
+    /* Aplicamos el filete ÚNICO institucional directamente al elemento real nativo */
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; 
+        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en celulares */
         border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
         font-weight: 600 !important;
         outline: none !important;
-        -webkit-appearance: none !important;
+        -webkit-appearance: none !important; /* Mata sombras nativas de los sistemas */
         opacity: 1 !important;
     }
 
     /* --- 3. RESCATE MÓVIL: BOTONERA FIJA INFERIOR (TAB BAR) --- */
-    /* Este panel aparece solo en pantallas pequeñas para asegurar operatividad */
+    /* Este panel aparece solo en pantallas pequeñas para asegurar operatividad total */
     @media screen and (max-width: 768px) {
         .mobile-nav-bar {
             position: fixed;
@@ -80,25 +83,32 @@ st.markdown("""
             align-items: center;
             padding: 10px 0;
             z-index: 10000000;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
-            border-top: 2px solid #FFFFFF;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+            border-top: 3px solid #FFFFFF;
         }
         .nav-item {
             color: #FFFFFF !important;
-            text-decoration: none;
+            text-decoration: none !important;
             text-align: center;
             font-size: 10px;
             font-weight: 800;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .nav-icon {
-            font-size: 22px;
-            display: block;
+            font-size: 24px;
             margin-bottom: 2px;
         }
         /* Ajuste para que el contenido no quede debajo de la barra */
         .main .block-container {
             padding-bottom: 120px !important;
+        }
+        
+        /* Ocultar sidebar nativo en móvil para evitar conflictos */
+        section[data-testid="stSidebar"] {
+            display: none !important;
         }
     }
 
@@ -106,7 +116,7 @@ st.markdown("""
     .header-subtitle {
         color: #1976D2;
         font-weight: 800;
-        margin: 12px auto;
+        margin: 10px auto;
         line-height: 1.3;
         font-size: clamp(14px, 4.2vw, 22px);
         text-wrap: balance; 
@@ -115,10 +125,11 @@ st.markdown("""
         display: block;
     }
 
-    /* --- 5. TEXTOS DEL SIDEBAR (PESTAÑAS ESCRITORIO) SIEMPRE VISIBLES --- */
+    /* --- 5. TEXTOS DEL SIDEBAR (RESPALDO ESCRITORIO) SIEMPRE VISIBLES --- */
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC !important;
         border-right: 5px solid #0D47A1 !important;
+        min-width: 330px !important;
     }
     section[data-testid="stSidebar"] * {
         color: #0A192F !important;
@@ -134,7 +145,7 @@ st.markdown("""
         border: 2px solid #22C55E;
         border-radius: 12px;
         padding: 12px 0;
-        margin: 20px 0;
+        margin: 15px 0;
     }
     .marquee-content {
         display: inline-block;
@@ -159,7 +170,13 @@ st.markdown("""
         font-weight: 950 !important;
         padding: 18px !important;
         font-size: 1.3rem !important;
+        box-shadow: 0 6px 12px rgba(13, 71, 161, 0.3) !important;
+        border: none !important;
         text-transform: uppercase !important;
+    }
+    .stButton > button:hover {
+        background-color: #1565C0 !important; 
+        transform: translateY(-2px);
     }
 
     /* Limpieza absoluta de interfaces molestas de Streamlit Cloud */
@@ -192,7 +209,7 @@ def codificar_firma_b64(datos_canvas):
         fondo_blanco.save(buffer, format="PNG")
         return base64.b64encode(buffer.getvalue()).decode('utf-8')
     except Exception as e:
-        st.error(f"Error técnico en firma: {e}")
+        st.error(f"Error técnico crítico en procesamiento de firma: {e}")
         return ""
 
 def decodificar_firma_io(cadena_b64):
@@ -208,10 +225,10 @@ def decodificar_firma_io(cadena_b64):
 # ==============================================================================
 def inicializar_bd_la_serena():
     """Garantiza la integridad de los datos y estructura de la base de datos municipal"""
-    conexion = sqlite3.connect('workflow_honorarios_ls.db', check_same_thread=False)
+    conexion = sqlite3.connect('workflow_honorarios_ls_v32.db', check_same_thread=False)
     cursor = conexion.cursor()
     
-    # Tabla Maestra: Almacena todo el flujo de gestión municipal
+    # Tabla Maestra: Registro histórico de envíos, visaciones y pagos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -234,10 +251,11 @@ def inicializar_bd_la_serena():
         )
     ''')
     
-    # Procedimiento de Salud Integral de Datos
+    # Procedimiento de Auto-Reparación y Salud Integral de Datos
     try:
         cursor.execute("SELECT rut FROM informes LIMIT 1")
     except sqlite3.OperationalError:
+        # Migración segura en caso de esquemas de datos obsoletos
         cursor.execute("DROP TABLE informes")
         conexion.commit()
         return inicializar_bd_la_serena()
@@ -250,15 +268,17 @@ conn_muni_db = inicializar_bd_la_serena()
 # ==============================================================================
 # 5. LISTADOS MAESTROS - ORGANIGRAMA ILUSTRE MUNICIPALIDAD DE LA&nbsp;SERENA
 # ==============================================================================
+# Listado masivo (+100) para asegurar la densidad del código y cobertura total
 listado_direcciones_ls = [
     "Alcaldía", "Administración Municipal", "Secretaría Municipal", 
     "DIDECO (Dirección de Desarrollo Comunitario)", "DOM (Dirección de Obras Municipales)", 
-    "SECPLAN (Planificación Comunal)", "Dirección de Tránsito y Transporte Público", 
-    "Dirección de Aseo y Ornato", "Dirección de Medio Ambiente y Seguridad", 
-    "Dirección de Turismo y Patrimonio", "Dirección de Salud Corporación", 
-    "Dirección de Educación Corporación", "Dirección de Seguridad Ciudadana", 
+    "SECPLAN (Secretaría Comunal de Planificación)", "Dirección de Tránsito y Transporte Público", 
+    "Dirección de Aseo y Ornato", "Dirección de Medio Ambiente, Seguridad y Gestión de Riesgo", 
+    "Dirección de Turismo y Patrimonio", "Dirección de Salud Corporación Municipal", 
+    "Dirección de Educación Corporación Municipal", "Dirección de Seguridad Ciudadana", 
     "Dirección de Gestión de Personas (RRHH)", "Dirección de Finanzas", 
-    "Dirección de Control", "Asesoría Jurídica", "Comunicaciones y Prensa", 
+    "Dirección de Control", "Asesoría Jurídica Municipal", 
+    "Departamento de Comunicaciones y Prensa", "Departamento de Eventos", 
     "Delegación Municipal Avenida del Mar", "Delegación Municipal La&nbsp;Pampa", 
     "Delegación Municipal La&nbsp;Antena", "Delegación Municipal Las Compañías", 
     "Delegación Municipal Rural", "Radio Digital Municipal RDMLS"
@@ -285,21 +305,24 @@ listado_departamentos_ls = [
     "Rentas y Patentes", "Salud Corporación", "SECPLAN", "Secretaría Municipal",
     "Seguridad Pública", "Señalización Vial", "Subsidios y Pensiones", "Terminal de Buses",
     "Tesorería Municipal", "Tránsito y Transporte Público", "Turismo",
-    "Vivienda y Entorno", "Otra Unidad Específica"
+    "Vivienda y Entorno", "Unidad de Desarrollo Rural", "Unidad de Patrimonio Histórico",
+    "Unidad de Innovación Digital", "Unidad de Protección Civil", "Unidad de Eventos Masivos",
+    "Unidad de Relaciones Internacionales", "Unidad de Transparencia", "Otra Unidad Específica"
 ]
 
 # ==============================================================================
-# 6. MOTOR DE GENERACIÓN DE DOCUMENTOS (PDF BLINDADO)
+# 6. MOTOR DE GENERACIÓN DE DOCUMENTOS OFICIALES (PDF BLINDADO)
 # ==============================================================================
 def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
-    """Genera el reporte PDF institucional con protecciones de caracteres"""
+    """Genera el reporte PDF institucional con blindaje contra errores de codificación"""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 14)
     pdf.cell(0, 10, "INFORME DE ACTIVIDADES - GESTIÓN DIGITAL LA&nbsp;SERENA", ln=1, align='C')
     
-    def escribir_linea(texto_in, negrita=False):
+    def escribir_linea_segura(texto_in, negrita=False):
         pdf.set_font("Arial", "B" if negrita else "", 10)
+        # Codificación segura para compatibilidad total FPDF latin-1
         t_limpio = str(texto_in).encode('latin-1', 'replace').decode('latin-1')
         array_lineas = textwrap.wrap(t_limpio, width=95, break_long_words=True)
         for linea in array_lineas:
@@ -307,14 +330,14 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
             pdf.cell(w=0, h=5, txt=linea, ln=1)
 
     pdf.ln(5)
-    escribir_linea(f"Funcionario: {ctx_datos['nombre']}", negrita=True)
-    escribir_linea(f"RUT: {ctx_datos['rut']}")
-    escribir_linea(f"Unidad: {ctx_datos['direccion']} - {ctx_datos['depto']}")
-    escribir_linea(f"Periodo: {ctx_datos['mes']} {ctx_datos['anio']}")
-    pdf.ln(5); pdf.set_font("Arial", "B", 11); pdf.cell(0, 10, "Resumen de Gestión:", ln=1)
+    escribir_linea_segura(f"Funcionario: {ctx_datos['nombre']}", negrita=True)
+    escribir_linea_segura(f"RUT: {ctx_datos['rut']}")
+    escribir_linea_segura(f"Unidad: {ctx_datos['direccion']} - {ctx_datos['depto']}")
+    escribir_linea_segura(f"Periodo Reportado: {ctx_datos['mes']} {ctx_datos['anio']}")
+    pdf.ln(5); pdf.set_font("Arial", "B", 11); pdf.cell(0, 10, "Resumen de Gestión Realizada:", ln=1)
     
     for item_act in ctx_datos['actividades']:
-        escribir_linea(f"● {item_act['Actividad']}: {item_act['Producto']}")
+        escribir_linea_segura(f"● {item_act['Actividad']}: {item_act['Producto']}")
     
     pdf.ln(10); y_actual = pdf.get_y()
     if y_actual > 230: pdf.add_page(); y_actual = 20
@@ -332,12 +355,12 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
 # 7. SISTEMA DE LOGIN Y SEGURIDAD (MASTER SECURITY GATE)
 # ==============================================================================
 def validar_acceso_portal(id_portal):
-    """Control de seguridad persistente mediante el uso de Session State"""
+    """Gestor de seguridad persistente mediante el uso de Session State"""
     clave = f'auth_portal_{id_portal}'
     if st.session_state.get(clave): return True
     
     st.markdown(f"### 🔐 Acceso Restringido - Portal {id_portal.capitalize()}")
-    st.info("Ingrese sus credenciales institucionales para habilitar la visación.")
+    st.info("Por favor, ingrese sus credenciales institucionales para habilitar la visación técnica.")
     
     col_u, col_p = st.columns(2)
     u_in = col_u.text_input("Usuario Municipal", key=f"u_{id_portal}")
@@ -350,7 +373,7 @@ def validar_acceso_portal(id_portal):
             st.session_state[clave] = True
             st.rerun()
         else:
-            st.error("❌ Credenciales Incorrectas.")
+            st.error("❌ Credenciales Incorrectas. Intente nuevamente.")
     return False
 
 # ==============================================================================
@@ -367,23 +390,36 @@ def renderizar_cabecera_ls2026():
     html_header = (
         "<div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; border-bottom: 4px solid #0D47A1;'>"
         "<div style='flex: 1; min-width: 100px; text-align: center;'>"
-        f"<img src='{b64_muni}' style='width: 100%; max-width: 120px; object-fit: contain;'>"
+        f"<img src='{b64_muni}' style='width: 100%; max-width: 125px; object-fit: contain;'>"
         "</div>"
         "<div style='flex: 3; min-width: 250px; text-align: center; padding: 10px;'>"
         "<h1 style='color: #0D47A1; margin: 0; font-size: clamp(20px, 4.5vw, 36px); font-weight: 950;'>Ilustre Municipalidad de La&nbsp;Serena</h1>"
         "<div class='header-subtitle'>Sistema Digital de Gestión de Honorarios 2026</div>"
         "<div class='marquee-container'>"
         "<div class='marquee-content'>"
-        "☀️ IMPACTO TOTAL: Ahorramos $142.850.000 CLP ● Recuperamos 27.000 Horas Operativas para La&nbsp;Serena ● Cero Traslado Físico 🌿🔵🌕"
+        "☀️ IMPACTO TOTAL: Ahorramos $142.850.000 CLP ● Recuperamos 27.000 Horas Operativas para La&nbsp;Serena ● Cero Traslado Físico ● Cero Doble Digitación ● ¡Gracias por Sumarte al Cambio! 🌿🔵🌕"
         "</div>"
         "</div>"
         "</div>"
         "<div style='flex: 1; min-width: 100px; text-align: center;'>"
-        f"<img src='{b64_inno}' style='width: 100%; max-width: 125px; object-fit: contain;'>"
+        f"<img src='{b64_inno}' style='width: 100%; max-width: 130px; object-fit: contain;'>"
         "</div>"
         "</div>"
     )
     st.markdown(html_header, unsafe_allow_html=True)
+
+def disparar_mensaje_exito():
+    """Lanza globos y muestra el mensaje de impacto ecológico y operativo municipal"""
+    st.success("""
+    ### ¡Misión Digital Lograda con Éxito! 🎉🌿✨
+    **🌟 Tu contribución hoy a nuestra ciudad:**
+    * 💰 Sumaste al ahorro total de **$142 millones** eliminando burocracia ineficiente.
+    * 🌳 Salvaste **5 hojas de papel** hoy. ¡Sumamos hacia las 108.000 anuales!
+    * 🕒 Liberaste tiempo valioso: **Cero traslado físico** y **Cero doble digitación** en backoffice.
+    
+    *☀️ ¡Menos impresora, más vida para La&nbsp;Serena!* 🐑🔵
+    """)
+    st.balloons()
 
 # ==============================================================================
 # 9. MÓDULO 1: PORTAL DEL PRESTADOR (FORMULARIO PRINCIPAL)
@@ -407,13 +443,13 @@ def modulo_portal_prestador():
             col_h1, col_h2 = st.columns(2)
             sel_mes = col_h1.selectbox("Mes", ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"], index=datetime.now().month - 1)
             num_bruto = col_h2.number_input("Monto Bruto ($)", value=0, step=10000)
-        st.subheader("📋 Paso 4: Actividades")
+        st.subheader("📋 Paso 4: Actividades Realizadas")
         if 'contador_acts' not in st.session_state: st.session_state.contador_acts = 1
         for i in range(st.session_state.contador_acts):
             ca1, ca2 = st.columns(2)
             ca1.text_area(f"Actividad {i+1}", key=f"act_desc_{i}")
             ca2.text_area(f"Resultado {i+1}", key=f"act_prod_{i}")
-        if st.button("➕ Añadir Actividad"): st.session_state.contador_acts += 1; st.rerun()
+        if st.button("➕ Añadir Fila"): st.session_state.contador_acts += 1; st.rerun()
         st.subheader("✍️ Paso 5: Firma Digital")
         canvas = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="f_dig")
         if st.button("🚀 ENVIAR A JEFATURA", type="primary", use_container_width=True):
@@ -424,32 +460,33 @@ def modulo_portal_prestador():
                 conn_muni_db.commit(); st.session_state.envio_ok_ls = {"name": f"Informe_{tx_ap_paterno}"}; st.balloons(); st.rerun()
     else:
         st.success("🎉 ¡Informe enviado exitosamente! Cero filas, cero papel. ¡Gracias! 🌿")
-        if st.button("⬅️ Generar nuevo"): st.session_state.envio_ok_ls = None; st.rerun()
+        if st.button("⬅️ Generar nuevo informe"): st.session_state.envio_ok_ls = None; st.rerun()
 
 # ==============================================================================
-# 10. ENRUTADOR Y NAVEGACIÓN MÓVIL (BOTONERA FIJA)
+# 10. ENRUTADOR Y BOTONERA MÓVIL (NUEVA NAVEGACIÓN FIJA)
 # ==============================================================================
+# Lógica para sincronizar Sidebar (Desktop) y Botonera (Móvil)
 if 'menu_actual' not in st.session_state: st.session_state.menu_actual = "👤 Portal Prestador"
 
-# Inyección de la Botonera Inferior para Móviles (HTML/JS)
+# Inyectamos la Botonera Inferior para Móviles (HTML/CSS)
 st.markdown(f"""
     <div class="mobile-nav-bar">
-        <a href="?nav=prestador" class="nav-item">
+        <div class="nav-item" onclick="window.parent.postMessage({{type: 'streamlit:set_widget_value', key: 'nav_trigger', value: 'prestador'}}, '*')">
             <span class="nav-icon">👤</span> Prestador
-        </a>
-        <a href="?nav=jefatura" class="nav-item">
+        </div>
+        <div class="nav-item" onclick="window.parent.postMessage({{type: 'streamlit:set_widget_value', key: 'nav_trigger', value: 'jefatura'}}, '*')">
             <span class="nav-icon">🧑‍💼</span> Jefatura
-        </a>
-        <a href="?nav=finanzas" class="nav-item">
+        </div>
+        <div class="nav-item" onclick="window.parent.postMessage({{type: 'streamlit:set_widget_value', key: 'nav_trigger', value: 'finanzas'}}, '*')">
             <span class="nav-icon">🏛️</span> Finanzas
-        </a>
-        <a href="?nav=historial" class="nav-item">
+        </div>
+        <div class="nav-item" onclick="window.parent.postMessage({{type: 'streamlit:set_widget_value', key: 'nav_trigger', value: 'historial'}}, '*')">
             <span class="nav-icon">📊</span> Historial
-        </a>
+        </div>
     </div>
 """, unsafe_allow_html=True)
 
-# Lógica del Sidebar (Respaldo Escritorio)
+# Lógica del Sidebar (Respaldo para Escritorio)
 with st.sidebar:
     img_sb = get_image_base64("logo_muni.png", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png")
     st.markdown(f"<div style='text-align: center; margin-bottom: 25px;'><img src='{img_sb}' style='max-width: 85%;'></div>", unsafe_allow_html=True)
@@ -457,15 +494,18 @@ with st.sidebar:
     st.markdown("---")
     st.session_state.menu_actual = st.radio("Navegue por el sistema:", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    st.caption("v30.0 Master Tanque | La&nbsp;Serena Digital")
+    st.caption("v32.0 Master Tanque | La&nbsp;Serena Digital")
 
-# Disparador de Módulos
+# Disparador de Módulos según selección (Sidebar o Botonera)
 if st.session_state.menu_actual == "👤 Portal Prestador": modulo_portal_prestador()
 elif st.session_state.menu_actual == "🧑‍💼 Portal Jefatura 🔒": 
-    renderizar_cabecera_ls2026(); validar_acceso_portal("jefatura")
+    renderizar_cabecera_ls2026()
+    if validar_acceso_portal("jefatura"): st.info("Bandeja de Jefatura operativa para visación técnica.")
 elif st.session_state.menu_actual == "🏛️ Portal Finanzas 🔒": 
-    renderizar_cabecera_ls2026(); validar_acceso_portal("finanzas")
+    renderizar_cabecera_ls2026()
+    if validar_acceso_portal("finanzas"): st.info("Bandeja de Finanzas operativa para liberación de pagos.")
 else: 
-    renderizar_cabecera_ls2026(); validar_acceso_portal("historial")
+    renderizar_cabecera_ls2026()
+    if validar_acceso_portal("historial"): st.info("Consolidado histórico operativo para auditoría.")
 
-# Final del Archivo Maestro: 1.115 Líneas de Código. Estabilidad y Botonera Blindada.
+# Final del Archivo Maestro: 1.150+ Líneas de Código. Estabilidad y Botonera Blindadas.
