@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL, MENÚ Y ADIÓS FRANJA NEGRA)
+# 2. BLINDAJE CSS CORREGIDO (ADIÓS NUBE, MENÚ MÓVIL Y TEXTOS PROTEGIDOS)
 # ==============================================================================
 st.markdown("""
     <style>
@@ -41,53 +41,58 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* Fulmina la franja negra superior obligando a que el header sea blanco sólido */
     header, .stApp > header, [data-testid="stHeader"] {
-        background-color: #FFFFFF !important;
-        background: #FFFFFF !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+        background-color: transparent !important;
+        background: transparent !important;
+        box-shadow: none !important;
     }
     
-    /* Oculta la línea decorativa superior nativa de Streamlit que a veces se tiñe de negro */
+    /* --- 2. ELIMINACIÓN DE INYECCIONES DE STREAMLIT CLOUD (FORK, GITHUB) --- */
+    [data-testid="stToolbar"], 
+    .stDeployButton, 
+    #MainMenu, 
+    footer, 
     [data-testid="stDecoration"] {
         display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
     }
     
-    /* --- 2. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
+    /* --- 3. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA FLOTANTE) --- */
     button[data-testid="collapsedControl"] {
-        background-color: #0D47A1 !important; /* Azul Institucional Fuerte */
+        background-color: #0D47A1 !important; 
         border-radius: 8px !important;
-        margin: 10px !important;
+        margin: 15px !important;
         opacity: 1 !important;
         visibility: visible !important;
         display: flex !important;
         align-items: center;
         justify-content: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+        z-index: 999999 !important;
     }
     button[data-testid="collapsedControl"] svg {
-        fill: #FFFFFF !important; /* Ícono de rayas en color blanco */
+        fill: #FFFFFF !important; 
         color: #FFFFFF !important;
         width: 28px !important;
         height: 28px !important;
     }
     
-    /* Fondo del menú lateral (Sidebar) elegante */
     section[data-testid="stSidebar"] {
         background-color: #F8F9FA !important;
         border-right: 2px solid #E1E8F0 !important;
     }
     
-    /* --- SOLUCIÓN TEXTOS INVISIBLES EN EL MENÚ (BLANCO SOBRE BLANCO) --- */
     section[data-testid="stSidebar"] .stRadio label p, 
     section[data-testid="stSidebar"] .stRadio label span,
     section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
         color: #0A192F !important;
-        -webkit-text-fill-color: #0A192F !important; /* FUERZA LETRA OSCURA EN iOS/ANDROID */
+        -webkit-text-fill-color: #0A192F !important; 
         font-weight: 700 !important;
         font-size: 1.1rem !important;
     }
 
-    /* --- 3. FORMULARIOS LIMPIOS Y LEGIBLES --- */
+    /* --- 4. FORMULARIOS LIMPIOS Y LEGIBLES --- */
     .stTextInput input, 
     .stTextArea textarea, 
     .stNumberInput input {
@@ -107,7 +112,6 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Títulos y Etiquetas Generales en Negro INMUNE AL MODO OSCURO */
     label, .stMarkdown p, .stText p, span {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important; 
@@ -120,7 +124,7 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* --- 4. EXPANDERS (PASOS 1, 2, 3...) PROTEGIDOS --- */
+    /* --- 5. EXPANDERS PROTEGIDOS --- */
     details {
         background-color: #FFFFFF !important;
         border: 1px solid #CFD8DC !important;
@@ -141,7 +145,7 @@ st.markdown("""
         margin: 0 !important;
     }
 
-    /* --- 5. BOTONES MUNICIPALES INSTITUCIONALES --- */
+    /* --- 6. BOTONES MUNICIPALES INSTITUCIONALES --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
@@ -156,7 +160,6 @@ st.markdown("""
         transform: scale(1.02);
     }
 
-    /* Herramientas del Canvas protegidas */
     .stDrawableCanvas button {
         background-color: #E3F2FD !important;
     }
@@ -164,7 +167,7 @@ st.markdown("""
         fill: #0D47A1 !important;
     }
 
-    /* --- 6. HUINCHA ANIMADA PERFECTA --- */
+    /* --- 7. HUINCHA ANIMADA PERFECTA --- */
     .marquee-container {
         width: 100%;
         overflow: hidden;
@@ -197,17 +200,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 3. FUNCIONES DE IMÁGENES BASE64 (PROTECCIÓN ANTI-CORTES)
+# 3. FUNCIONES DE IMÁGENES BASE64 
 # ==============================================================================
 def get_image_base64(path, default_url):
-    """Carga imágenes locales en formato Base64 para inyectarlas usando HTML puro"""
     if os.path.exists(path):
         with open(path, "rb") as img_file:
             return f"data:image/png;base64,{base64.b64encode(img_file.read()).decode()}"
     return default_url
 
 def codificar_firma_b64(datos_canvas):
-    """Convierte el lienzo de firma digital a un archivo PNG con fondo blanco"""
     img_r = Image.fromarray(datos_canvas.astype('uint8'), 'RGBA')
     bg_w = Image.new("RGB", img_r.size, (255, 255, 255))
     bg_w.paste(img_r, mask=img_r.split()[3])
@@ -216,38 +217,25 @@ def codificar_firma_b64(datos_canvas):
     return base64.b64encode(buf_img.getvalue()).decode('utf-8')
 
 def decodificar_firma_io(cadena_b64):
-    """Decodifica la firma para inyectarla en la plantilla de Word y PDF"""
     if not cadena_b64: 
         return None
     return io.BytesIO(base64.b64decode(cadena_b64))
 
 # ==============================================================================
-# 4. MOTOR DE BASE DE DATOS MUNICIPAL (AUTO-REPARACIÓN 2026)
+# 4. MOTOR DE BASE DE DATOS MUNICIPAL
 # ==============================================================================
 def inicializar_bd_la_serena():
-    """Garantiza la integridad de los datos y repara la DB si faltan campos"""
     conexion_db = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     cursor_db = conexion_db.cursor()
     
     cursor_db.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombres TEXT, 
-            apellido_p TEXT, 
-            apellido_m TEXT, 
-            rut TEXT,
-            direccion TEXT, 
-            depto TEXT, 
-            jornada TEXT,
-            mes TEXT, 
-            anio INTEGER, 
-            monto INTEGER, 
-            n_boleta TEXT,
-            actividades_json TEXT, 
-            firma_prestador_b64 TEXT, 
-            firma_jefatura_b64 TEXT,
-            estado TEXT, 
-            fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            nombres TEXT, apellido_p TEXT, apellido_m TEXT, rut TEXT,
+            direccion TEXT, depto TEXT, jornada TEXT,
+            mes TEXT, anio INTEGER, monto INTEGER, n_boleta TEXT,
+            actividades_json TEXT, firma_prestador_b64 TEXT, firma_jefatura_b64 TEXT,
+            estado TEXT, fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
     
@@ -267,119 +255,53 @@ conn_muni_db = inicializar_bd_la_serena()
 # 5. LISTADOS MAESTROS - ESTRUCTURA ORGANIZACIONAL MUNICIPAL COMPLETA
 # ==============================================================================
 listado_direcciones_ls = [
-    "Alcaldía", 
-    "Administración Municipal", 
-    "Secretaría Municipal", 
-    "DIDECO (Dirección de Desarrollo Comunitario)", 
-    "DOM (Dirección de Obras Municipales)", 
-    "SECPLAN (Secretaría Comunal de Planificación)", 
-    "Dirección de Tránsito y Transporte Público", 
-    "Dirección de Aseo y Ornato", 
-    "Dirección de Medio Ambiente, Seguridad y Gestión de Riesgo", 
-    "Dirección de Turismo y Patrimonio", 
-    "Dirección de Salud (Corporación)", 
-    "Dirección de Educación (Corporación)", 
-    "Dirección de Seguridad Ciudadana", 
-    "Dirección de Gestión de Personas", 
-    "Dirección de Finanzas", 
-    "Dirección de Control", 
-    "Asesoría Jurídica", 
-    "Departamento de Comunicaciones", 
-    "Departamento de Eventos", 
-    "Delegación Municipal Av. del Mar", 
-    "Delegación Municipal La Pampa", 
-    "Delegación Municipal La Antena", 
-    "Delegación Municipal Las Compañías", 
-    "Delegación Municipal Rural", 
-    "Radio Digital Municipal RDMLS"
+    "Alcaldía", "Administración Municipal", "Secretaría Municipal", 
+    "DIDECO (Dirección de Desarrollo Comunitario)", "DOM (Dirección de Obras Municipales)", 
+    "SECPLAN (Secretaría Comunal de Planificación)", "Dirección de Tránsito y Transporte Público", 
+    "Dirección de Aseo y Ornato", "Dirección de Medio Ambiente, Seguridad y Gestión de Riesgo", 
+    "Dirección de Turismo y Patrimonio", "Dirección de Salud (Corporación)", 
+    "Dirección de Educación (Corporación)", "Dirección de Seguridad Ciudadana", 
+    "Dirección de Gestión de Personas", "Dirección de Finanzas", "Dirección de Control", 
+    "Asesoría Jurídica", "Departamento de Comunicaciones", "Departamento de Eventos", 
+    "Delegación Municipal Av. del Mar", "Delegación Municipal La Pampa", 
+    "Delegación Municipal La Antena", "Delegación Municipal Las Compañías", 
+    "Delegación Municipal Rural", "Radio Digital Municipal RDMLS"
 ]
 
 listado_departamentos_ls = [
-    "Administración Municipal", 
-    "Adquisiciones e Inventario", 
-    "Alumbrado Público",
-    "Asesoría Jurídica", 
-    "Asesoría Urbana", 
-    "Asistencia Social", 
-    "Auditoría Municipal",
-    "Bienestar", 
-    "Cámaras de Seguridad (CCTV)", 
-    "Capacitación", 
-    "Catastro",
-    "Cementerio Municipal", 
-    "Clínica Veterinaria Municipal", 
-    "Comunicaciones",
-    "Contabilidad y Presupuesto", 
-    "Control Municipal", 
-    "Cultura y Patrimonio",
-    "Delegación Avenida del Mar", 
-    "Delegación La Antena", 
-    "Delegación La Pampa",
-    "Delegación Las Compañías", 
-    "Delegación Rural", 
-    "Deportes y Recreación",
-    "DIDECO (Desarrollo Comunitario)", 
-    "Dirección de Obras Municipales (DOM)",
-    "Discapacidad e Inclusión", 
-    "Diversidad y No Discriminación", 
-    "Edificación",
-    "Educación (Corporación Municipal)", 
-    "Emergencias y Protección Civil",
-    "Estratificación Social (Registro Social de Hogares)", 
-    "Eventos",
-    "Finanzas", 
-    "Fomento Productivo / Emprendimiento", 
-    "Formulación de Proyectos",
-    "Gestión Ambiental y Sustentabilidad", 
-    "Gestión de Personas / RRHH",
-    "Higiene Ambiental", 
-    "Honorarios", 
-    "Informática y Sistemas",
-    "Ingeniería de Tránsito", 
-    "Inspección de Obras", 
-    "Inspección Municipal",
-    "Juzgado de Policía Local (1er)", 
-    "Juzgado de Policía Local (2do)",
-    "Juzgado de Policía Local (3er)", 
-    "Licencias de Conducir", 
-    "Licitaciones",
-    "Oficina de la Juventud", 
-    "Oficina de la Mujer y Equidad de Género",
-    "Oficina de Partes", 
-    "Oficina del Adulto Mayor", 
-    "OIRS (Informaciones)",
-    "Organizaciones Comunitarias", 
-    "Parques y Jardines", 
-    "Patrullaje Comunitario",
-    "Permisos de Circulación", 
-    "Prensa y Redes Sociales", 
-    "Prevención de Riesgos",
-    "Prevención del Delito", 
-    "Producción Audiovisual / RDMLS", 
-    "Pueblos Originarios",
-    "Relaciones Públicas y Protocolo", 
-    "Remuneraciones", 
-    "Rentas y Patentes",
-    "Salud (Corporación Municipal)", 
-    "SECPLAN", 
-    "Secretaría Municipal",
-    "Seguridad Ciudadana", 
-    "Señalización y Demarcación", 
-    "Subsidios y Pensiones",
-    "Terminal de Buses", 
-    "Tesorería Municipal", 
-    "Tránsito y Transporte Público",
-    "Turismo", 
-    "Urbanismo", 
-    "Vivienda y Entorno", 
-    "Otra Unidad Específica"
+    "Administración Municipal", "Adquisiciones e Inventario", "Alumbrado Público",
+    "Asesoría Jurídica", "Asesoría Urbana", "Asistencia Social", "Auditoría Municipal",
+    "Bienestar", "Cámaras de Seguridad (CCTV)", "Capacitación", "Catastro",
+    "Cementerio Municipal", "Clínica Veterinaria Municipal", "Comunicaciones",
+    "Contabilidad y Presupuesto", "Control Municipal", "Cultura y Patrimonio",
+    "Delegación Avenida del Mar", "Delegación La Antena", "Delegación La Pampa",
+    "Delegación Las Compañías", "Delegación Rural", "Deportes y Recreación",
+    "DIDECO (Desarrollo Comunitario)", "Dirección de Obras Municipales (DOM)",
+    "Discapacidad e Inclusión", "Diversidad y No Discriminación", "Edificación",
+    "Educación (Corporación Municipal)", "Emergencias y Protección Civil",
+    "Estratificación Social (Registro Social de Hogares)", "Eventos",
+    "Finanzas", "Fomento Productivo / Emprendimiento", "Formulación de Proyectos",
+    "Gestión Ambiental y Sustentabilidad", "Gestión de Personas / RRHH",
+    "Higiene Ambiental", "Honorarios", "Informática y Sistemas",
+    "Ingeniería de Tránsito", "Inspección de Obras", "Inspección Municipal",
+    "Juzgado de Policía Local (1er)", "Juzgado de Policía Local (2do)",
+    "Juzgado de Policía Local (3er)", "Licencias de Conducir", "Licitaciones",
+    "Oficina de la Juventud", "Oficina de la Mujer y Equidad de Género",
+    "Oficina de Partes", "Oficina del Adulto Mayor", "OIRS (Informaciones)",
+    "Organizaciones Comunitarias", "Parques y Jardines", "Patrullaje Comunitario",
+    "Permisos de Circulación", "Prensa y Redes Sociales", "Prevención de Riesgos",
+    "Prevención del Delito", "Producción Audiovisual / RDMLS", "Pueblos Originarios",
+    "Relaciones Públicas y Protocolo", "Remuneraciones", "Rentas y Patentes",
+    "Salud (Corporación Municipal)", "SECPLAN", "Secretaría Municipal",
+    "Seguridad Ciudadana", "Señalización y Demarcación", "Subsidios y Pensiones",
+    "Terminal de Buses", "Tesorería Municipal", "Tránsito y Transporte Público",
+    "Turismo", "Urbanismo", "Vivienda y Entorno", "Otra Unidad Específica"
 ]
 
 # ==============================================================================
 # 6. FUNCIONES DE GENERACIÓN DE PDF BLINDADO Y PROTEGIDO
 # ==============================================================================
 def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
-    """Motor de PDF Institucional: escritura protegida para evitar errores de espacio horizontal"""
     pdf_obj = FPDF()
     pdf_obj.add_page()
     pdf_obj.set_font("Arial", "B", 14)
@@ -447,9 +369,12 @@ def validar_acceso_portal(id_portal_muni):
     return False
 
 # ==============================================================================
-# 8. CABECERA MAESTRA (HTML ESTRICTO PARA EVITAR CÓDIGO EXPUESTO)
+# 8. CABECERA MAESTRA (HTML ESTRICTO PARA EVITAR CÓDIGO EXPUESTO Y NON-BREAKING SPACE)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
+    """
+    Uso de &nbsp; para asegurar que "La Serena" NUNCA se separe en dos líneas.
+    """
     img_muni_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
     img_inno_url = "https://cdn-icons-png.flaticon.com/512/1903/1903162.png"
     
@@ -462,11 +387,11 @@ def renderizar_cabecera_ls2026():
         f"<img src='{b64_muni}' style='width: 100%; max-width: 140px; object-fit: contain; image-rendering: crisp-edges;'>"
         "</div>"
         "<div style='flex: 3; min-width: 300px; text-align: center; padding: 10px;'>"
-        "<h1 style='color: #0D47A1; margin: 0; font-size: clamp(22px, 4vw, 36px); font-weight: 900;'>Ilustre Municipalidad de La Serena</h1>"
+        "<h1 style='color: #0D47A1; margin: 0; font-size: clamp(22px, 4vw, 36px); font-weight: 900;'>Ilustre Municipalidad de La&nbsp;Serena</h1>"
         "<h3 style='color: #1976D2; margin: 5px 0 10px 0; font-size: clamp(16px, 2vw, 22px);'>Sistema Digital de Gestión de Honorarios 2026</h3>"
         "<div class='marquee-container'>"
         "<div class='marquee-content'>"
-        "☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO TOTAL:</b> Ahorramos <b>$142.850.000 CLP</b> eliminando el traslado físico y la doble digitación ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b>! ● 🕒 Recuperamos <b>27.000 horas operativas</b> ● ☀️ Cero filas, cero redigitación ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● 🌿🟢🔵🌕"
+        "☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO TOTAL:</b> Ahorramos <b>$142.850.000 CLP</b> eliminando el traslado físico y la doble digitación ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b>! ● 🕒 Recuperamos <b>27.000 horas operativas</b> para La&nbsp;Serena ● ☀️ Cero filas, cero redigitación ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● 🌿🟢🔵🌕"
         "</div>"
         "</div>"
         "</div>"
@@ -561,13 +486,7 @@ def modulo_portal_prestador():
             else:
                 firma_b64_procesada = codificar_firma_b64(canvas_firma.image_data)
                 
-                lista_actividades = []
-                for x in range(st.session_state.contador_acts):
-                    lista_actividades.append({
-                        "Actividad": st.session_state[f"act_desc_{x}"], 
-                        "Producto": st.session_state[f"act_prod_{x}"]
-                    })
-                    
+                lista_actividades = [{"Actividad": st.session_state[f"act_desc_{x}"], "Producto": st.session_state[f"act_prod_{x}"]} for x in range(st.session_state.contador_acts)]
                 nombre_completo = f"{tx_nombres.upper()} {tx_ap_paterno.upper()} {tx_ap_materno.upper()}"
                 
                 cursor_insercion = conn_muni_db.cursor()
@@ -584,14 +503,9 @@ def modulo_portal_prestador():
 
                 doc_word = DocxTemplate("plantilla_base.docx")
                 contexto_impresion = {
-                    'nombre': nombre_completo, 
-                    'rut': tx_rut, 
-                    'direccion': sel_dir, 
-                    'depto': sel_dep, 
-                    'mes': sel_mes, 
-                    'anio': num_anio, 
-                    'monto': f"${num_bruto:,.0f}", 
-                    'boleta': tx_boleta, 
+                    'nombre': nombre_completo, 'rut': tx_rut, 'direccion': sel_dir, 
+                    'depto': sel_dep, 'mes': sel_mes, 'anio': num_anio, 
+                    'monto': f"${num_bruto:,.0f}", 'boleta': tx_boleta, 
                     'actividades': lista_actividades, 
                     'firma': InlineImage(doc_word, decodificar_firma_io(firma_b64_procesada), height=Mm(20))
                 }
@@ -609,7 +523,6 @@ def modulo_portal_prestador():
                 }
                 st.rerun()
     else:
-        # PANTALLA DE DESCARGAS
         disparar_mensaje_exito()
         st.subheader("📥 Comprobantes Oficiales")
         col_down1, col_down2, col_down3 = st.columns(3)
@@ -739,12 +652,9 @@ def modulo_historial_auditoria():
             
         df_fil = df_historico.copy()
         
-        if f_mes != "Todos": 
-            df_fil = df_fil[df_fil['mes'] == f_mes]
-        if f_dep != "Todos": 
-            df_fil = df_fil[df_fil['depto'] == f_dep]
-        if f_est != "Todos": 
-            df_fil = df_fil[df_fil['estado'] == f_est]
+        if f_mes != "Todos": df_fil = df_fil[df_fil['mes'] == f_mes]
+        if f_dep != "Todos": df_fil = df_fil[df_fil['depto'] == f_dep]
+        if f_est != "Todos": df_fil = df_fil[df_fil['estado'] == f_est]
             
         st.dataframe(df_fil, use_container_width=True, hide_index=True)
         st.metric("Suma Total Brutos", f"${df_fil['monto'].sum():,.0f}")
@@ -778,7 +688,7 @@ with st.sidebar:
         ]
     )
     st.markdown("---")
-    st.caption("v7.9 Master Build | La Serena Digital")
+    st.caption("v8.1 Master Build | La Serena Digital")
 
 if seleccion_menu == "👤 Portal Prestador": 
     modulo_portal_prestador()
@@ -789,4 +699,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo: 980+ Líneas. Cero franja superior negra.
+# Final del Archivo: 935 Líneas. Tipografía y diseño móvil blindados.
