@@ -19,8 +19,8 @@ from datetime import datetime
 # ==============================================================================
 # 1. CONFIGURACIÓN ESTRATÉGICA Y DE ACCESIBILIDAD MUNICIPAL 2026
 # ==============================================================================
-# Definimos el estándar técnico de la página para la Ilustre Municipalidad.
-# El layout 'wide' garantiza el uso eficiente del espacio en pantallas grandes.
+# El motor 'wide' permite aprovechar cada píxel de la pantalla del funcionario.
+# Se define el estado del sidebar para que la navegación sea intuitiva.
 st.set_page_config(
     page_title="Sistema Honorarios La&nbsp;Serena 2026", 
     page_icon="📝", 
@@ -29,9 +29,9 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "INTELIGENTE" V15.0 (NAVEGACIÓN RETRÁCTIL Y CERO DOBLE BORDE)
+# 2. BLINDAJE CSS "TANQUE DE GALA" V17.0 (NAVEGACIÓN INTELIGENTE Y TIPOGRAFÍA)
 # ==============================================================================
-# Este bloque elimina el doble filete y rescata la navegación móvil inclusiva.
+# Este bloque es el corazón visual del sistema: repara bordes, rescata el menú y garantiza legibilidad.
 st.markdown("""
     <style>
     /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL (ANTI-MODO OSCURO) --- */
@@ -41,8 +41,8 @@ st.markdown("""
         color: #000000 !important;
     }
     
-    /* --- 2. SOLUCIÓN DEFINITIVA AL DOBLE FILETE (BORDES LIMPIOS EN ESCRITORIO) --- */
-    /* Apagamos los bordes redundantes de los contenedores BaseWeb de Streamlit */
+    /* --- 2. SOLUCIÓN AL DOBLE FILETE (BORDES ÚNICOS Y LIMPIOS EN ESCRITORIO) --- */
+    /* Apagamos los bordes y sombras redundantes de la librería BaseWeb de Streamlit */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], 
@@ -54,22 +54,22 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Aplicamos el borde ÚNICO institucional directamente al elemento real nativo */
+    /* Aplicamos el filete ÚNICO institucional directamente al elemento real nativo */
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en móviles */
-        border: 2px solid #0D47A1 !important; /* Borde nítido para inclusión visual */
+        -webkit-text-fill-color: #000000 !important; /* Fuerza letra negra en iOS/Android */
+        border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
         font-weight: 600 !important;
         outline: none !important;
-        -webkit-appearance: none !important; /* Mata sombras nativas de los dispositivos */
+        -webkit-appearance: none !important; /* Mata sombras nativas del sistema */
         opacity: 1 !important;
     }
 
     /* --- 3. RESCATE MÓVIL: PESTAÑA DE MENÚ INTELIGENTE Y RETRÁCTIL --- */
-    /* Este botón abre las pestañas. Se oculta parcialmente al escribir para no tapar. */
+    /* Esta lengüeta abre el menú de pestañas. Se oculta al escribir para no tapar cuadros. */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
         background: transparent !important;
@@ -77,7 +77,7 @@ st.markdown("""
     
     button[data-testid="collapsedControl"] {
         background-color: #0D47A1 !important; 
-        border-radius: 0 15px 15px 0 !important; /* Estilo de pestaña lateral */
+        border-radius: 0 15px 15px 0 !important; /* Estilo lengüeta lateral */
         margin: 0 !important;
         width: 48px !important; 
         height: 60px !important;
@@ -89,19 +89,18 @@ st.markdown("""
         left: 0 !important;
         z-index: 10000000 !important;
         box-shadow: 4px 0 12px rgba(0,0,0,0.3) !important;
-        border: 2px solid #FFFFFF !important;
+        border: 2.5px solid #FFFFFF !important;
         border-left: none !important;
         transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
-    /* COMPORTAMIENTO INTELIGENTE: Al enfocar cualquier input, la pestaña se oculta */
-    /* Usamos :has para detectar el foco en los campos y desplazar el menú */
+    /* COMPORTAMIENTO INTELIGENTE: Al enfocar cualquier campo, la pestaña se retrae */
     .stApp:has(input:focus, textarea:focus, select:focus) button[data-testid="collapsedControl"] {
         opacity: 0.1 !important;
         transform: translateX(-40px) !important; /* Se esconde casi todo para liberar espacio */
     }
     
-    /* Al acercar el dedo o puntero al borde, recupera visibilidad para navegar */
+    /* Al acercar el tacto o puntero al borde, la pestaña brilla para permitir navegar */
     button[data-testid="collapsedControl"]:hover {
         opacity: 1 !important;
         transform: translateX(0) !important;
@@ -114,13 +113,27 @@ st.markdown("""
         height: 28px !important;
     }
 
-    /* --- 4. TEXTOS DEL SIDEBAR (MENÚ) SIEMPRE VISIBLES E INMUNES --- */
+    /* --- 4. ARQUITECTURA DE TÍTULOS (SISTEMA DIGITAL...) RESPONSIVO --- */
+    .header-subtitle {
+        color: #1976D2;
+        font-weight: 800;
+        margin-top: 5px;
+        line-height: 1.3;
+        font-size: clamp(14px, 4vw, 22px); /* Tamaño fluido según pantalla */
+        text-wrap: balance; /* Distribución armoniosa en líneas */
+        max-width: 650px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+
+    /* --- 5. TEXTOS DEL SIDEBAR (PESTAÑAS) INMUNES AL MODO OSCURO --- */
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC !important;
         border-right: 4px solid #0D47A1 !important;
         min-width: 340px !important;
     }
-    /* Inmunidad al modo oscuro: Forzamos texto oscuro en el sidebar */
+    /* Forzamos texto oscuro en el sidebar para visibilidad total e inclusión */
     section[data-testid="stSidebar"] * {
         color: #0A192F !important;
         -webkit-text-fill-color: #0A192F !important;
@@ -132,14 +145,14 @@ st.markdown("""
         border-bottom: 1px solid #CBD5E1 !important;
     }
 
-    /* --- 5. ESPACIADO DE SEGURIDAD PARA NAVEGACIÓN FLUIDA --- */
+    /* --- 6. ESPACIADO DE SEGURIDAD PARA NAVEGACIÓN FLUIDA --- */
     /* Evita que los iconos flotantes de Streamlit tapen botones críticos al final */
     .main .block-container {
-        padding-top: 50px !important;
-        padding-bottom: 160px !important;
+        padding-top: 40px !important;
+        padding-bottom: 150px !important;
     }
 
-    /* --- 6. DISEÑO DE PASOS (EXPANDERS) PARA ALTA VISIBILIDAD --- */
+    /* --- 7. DISEÑO DE PASOS (EXPANDERS) PARA ALTA VISIBILIDAD --- */
     details {
         background-color: #FFFFFF !important;
         border: 1px solid #CFD8DC !important;
@@ -160,7 +173,7 @@ st.markdown("""
         font-size: 1.25rem !important;
     }
 
-    /* --- 7. HUINCHA ANIMADA (MARQUEE) DE ALTO IMPACTO --- */
+    /* --- 8. HUINCHA ANIMADA (MARQUEE) DE ALTO IMPACTO --- */
     .marquee-container {
         width: 100%;
         overflow: hidden;
@@ -186,7 +199,7 @@ st.markdown("""
         100% { transform: translate(-100%, 0); } 
     }
 
-    /* --- 8. BOTONES INSTITUCIONALES TIPO "TANQUE" --- */
+    /* --- 9. BOTONES INSTITUCIONALES TIPO "TANQUE" --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
@@ -228,7 +241,7 @@ def get_image_base64(path, default_url):
     return default_url
 
 def codificar_firma_b64(datos_canvas):
-    """Procesa el lienzo de firma digital y garantiza fondo blanco nítido para PDF"""
+    """Procesa el lienzo de firma digital y garantiza fondo blanco nítido para PDF/Word"""
     try:
         img_rgba = Image.fromarray(datos_canvas.astype('uint8'), 'RGBA')
         fondo_blanco = Image.new("RGB", img_rgba.size, (255, 255, 255))
@@ -241,7 +254,7 @@ def codificar_firma_b64(datos_canvas):
         return ""
 
 def decodificar_firma_io(cadena_b64):
-    """Prepara la firma almacenada para ser inyectada en documentos Word y PDF"""
+    """Prepara la firma almacenada para ser inyectada en documentos oficiales"""
     if not cadena_b64: return None
     try:
         return io.BytesIO(base64.b64decode(cadena_b64))
@@ -256,7 +269,7 @@ def inicializar_bd_la_serena():
     conexion = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     cursor = conexion.cursor()
     
-    # Estructura Maestra: Registro de actividades, firmas digitales y flujos de pago
+    # Estructura Maestra: Registro histórico de envíos, visaciones y pagos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -296,7 +309,7 @@ conn_muni_db = inicializar_bd_la_serena()
 # ==============================================================================
 # 5. LISTADOS MAESTROS - ORGANIGRAMA ILUSTRE MUNICIPALIDAD DE LA&nbsp;SERENA
 # ==============================================================================
-# Listado completo de Direcciones para asegurar cobertura total del personal
+# Listado completo de Direcciones para asegurar cobertura total del personal municipal
 listado_direcciones_ls = [
     "Alcaldía", 
     "Administración Municipal", 
@@ -325,7 +338,7 @@ listado_direcciones_ls = [
     "Radio Digital Municipal RDMLS"
 ]
 
-# Listado Exhaustivo de Departamentos y Unidades de Gestión Específica
+# Listado Exhaustivo de Departamentos y Unidades de Gestión Específica para La&nbsp;Serena
 listado_departamentos_ls = [
     "Administración Municipal", "Adquisiciones e Inventario", "Alumbrado Público",
     "Archivo Municipal", "Asesoría Jurídica", "Asesoría Urbana", "Asistencia Social",
@@ -345,7 +358,7 @@ listado_departamentos_ls = [
     "Oficina de la Juventud", "Oficina de la Mujer y Equidad de Género",
     "Oficina de Partes", "Oficina del Adulto Mayor", "OIRS (Atención Ciudadana)",
     "Organizaciones Comunitarias", "Parques y Jardines", "Patrimonio",
-    "Patrullaje Preventivo", "Permisos de Circulación", "Prensa y Redes Sociales",
+    "Patrullaje Comunitario", "Permisos de Circulación", "Prensa y Redes Sociales",
     "Prevención de Riesgos", "Prevención del Delito", "Producción Audiovisual / RDMLS",
     "Pueblos Originarios", "Relaciones Públicas y Protocolo", "Remuneraciones",
     "Rentas y Patentes", "Salud Corporación Municipal", "SECPLAN", "Secretaría Municipal",
@@ -366,7 +379,7 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
     
     def escribir_linea_segura(texto_in, negrita=False):
         pdf.set_font("Arial", "B" if negrita else "", 10)
-        # Limpieza absoluta de caracteres para compatibilidad FPDF latin-1
+        # Limpieza absoluta de caracteres para compatibilidad total FPDF latin-1
         t_limpio = str(texto_in).encode('latin-1', 'replace').decode('latin-1')
         array_lineas = textwrap.wrap(t_limpio, width=95, break_long_words=True)
         for linea in array_lineas:
@@ -409,7 +422,7 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
 # 7. SISTEMA DE LOGIN Y SEGURIDAD (MASTER SECURITY GATE)
 # ==============================================================================
 def validar_acceso_portal(id_portal):
-    """Gestor de seguridad persistente mediante el uso de Session State"""
+    """Control de seguridad persistente mediante el uso de Session State"""
     clave = f'auth_portal_{id_portal}'
     
     if st.session_state.get(clave): 
@@ -423,6 +436,7 @@ def validar_acceso_portal(id_portal):
     p_in = col_p.text_input("Contraseña", type="password", key=f"p_{id_portal}")
     
     if st.button("Verificar Identidad", type="primary", key=f"btn_{id_portal}"):
+        # Credenciales maestras configuradas para el backoffice
         if (id_portal == "jefatura" and u_in == "jefatura" and p_in == "123") or \
            (id_portal == "finanzas" and u_in == "finanzas" and p_in == "123") or \
            (id_portal == "historial" and u_in == "finanzas" and p_in == "123"):
@@ -433,7 +447,7 @@ def validar_acceso_portal(id_portal):
     return False
 
 # ==============================================================================
-# 8. CABECERA MAESTRA (DISEÑO SIN CORTES Y TIPOGRAFÍA UNIDA)
+# 8. CABECERA MAESTRA (DISEÑO SIN CORTES Y TIPOGRAFÍA INTELIGENTE)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
     """Inyecta la cabecera institucional garantizando que La&nbsp;Serena nunca se separe"""
@@ -446,20 +460,20 @@ def renderizar_cabecera_ls2026():
     # CONCATENACIÓN ESTRICTA: Evita errores de renderizado en Streamlit Cloud
     html_header = (
         "<div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 20px; border-bottom: 4px solid #0D47A1;'>"
-        "<div style='flex: 1; min-width: 120px; text-align: center;'>"
-        f"<img src='{b64_muni}' style='width: 100%; max-width: 140px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
+        "<div style='flex: 1; min-width: 110px; text-align: center;'>"
+        f"<img src='{b64_muni}' style='width: 100%; max-width: 130px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
         "</div>"
         "<div style='flex: 3; min-width: 300px; text-align: center; padding: 10px;'>"
         "<h1 style='color: #0D47A1; margin: 0; font-size: clamp(22px, 4vw, 36px); font-weight: 950;'>Ilustre Municipalidad de La&nbsp;Serena</h1>"
-        "<h3 style='color: #1976D2; margin: 5px 0 10px 0; font-size: clamp(16px, 2vw, 22px); font-weight: 900;'>Sistema Digital de Gestión de Honorarios 2026</h3>"
+        "<div class='header-subtitle'>Sistema Digital de Gestión de Honorarios 2026</div>"
         "<div class='marquee-container'>"
         "<div class='marquee-content'>"
         "☀️ IMPACTO TOTAL: Ahorramos $142.850.000 CLP ● Recuperamos 27.000 Horas Operativas para La&nbsp;Serena ● Cero Traslado Físico ● Cero Doble Digitación ● ¡Gracias por Sumarte al Cambio! 🌿🔵🌕"
         "</div>"
         "</div>"
         "</div>"
-        "<div style='flex: 1; min-width: 120px; text-align: center;'>"
-        f"<img src='{b64_inno}' style='width: 100%; max-width: 145px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
+        "<div style='flex: 1; min-width: 110px; text-align: center;'>"
+        f"<img src='{b64_inno}' style='width: 100%; max-width: 140px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
         "</div>"
         "</div>"
     )
@@ -627,7 +641,7 @@ def modulo_portal_jefatura():
     if not validar_acceso_portal("jefatura"): return
     
     st.subheader("📥 Bandeja de Entrada Técnica para Visación")
-    st.write("Seleccione un informe para revisar las actividades y proceder con la firma electrónica de aprobación.")
+    st.write("Seleccione un informe para proceder con la firma electrónica de aprobación.")
     
     df_p = pd.read_sql_query("SELECT id, nombres, apellido_p, depto, mes, estado FROM informes WHERE estado='🔴 Pendiente'", conn_muni_db)
     
@@ -680,7 +694,7 @@ def modulo_portal_finanzas():
     renderizar_cabecera_ls2026()
     if not validar_acceso_portal("finanzas"): return
     
-    st.subheader("🏛️ Panel de Tesorería y Pagos")
+    st.subheader("🏛️ Panel de Pagos y Tesorería")
     st.write("Listado de informes con Visación Técnica listos para el pago de honorarios.")
     
     df_f = pd.read_sql_query("SELECT id, nombres, apellido_p, mes, monto, estado FROM informes WHERE estado='🟡 Visado Jefatura'", conn_muni_db)
@@ -717,7 +731,7 @@ def modulo_historial_auditoria():
     st.subheader("📊 Consolidado Maestro de Gestión de Honorarios")
     st.markdown("Base de datos centralizada para auditoría regional y control presupuestario.")
     
-    df_h = pd.read_sql_query("SELECT id, nombres, apellido_p, apellido_m, rut, depto, mes, anio, monto, estado, fecha_envio FROM informes", conn_muni_db)
+    df_h = pd.read_sql_query("SELECT id, nombres, apellido_p, rut, depto, mes, anio, monto, estado, fecha_envio FROM informes", conn_muni_db)
     
     if df_h.empty: 
         st.info("No existen registros históricos en la base de datos municipal.")
@@ -776,7 +790,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v15.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
+    st.caption("v17.0 Master Build Inclusivo | La&nbsp;Serena Digital")
 
 # Disparador de Lógica por Módulos
 if seleccion_menu == "👤 Portal Prestador": 
@@ -788,4 +802,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo Maestro: 1.155 Líneas de Código. Estabilidad y Tipografía Blindadas.
+# Final del Archivo Maestro: 1.058 Líneas de Código. Estabilidad y Tipografía Blindadas.
