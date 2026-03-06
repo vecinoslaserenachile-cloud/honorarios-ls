@@ -1,6 +1,6 @@
 # ==============================================================================
 # SISTEMA OFICIAL DE GESTIÓN DE HONORARIOS - ILUSTRE MUNICIPALIDAD DE LA SERENA
-# VERSIÓN 48.0 "ACORAZADO VISUAL AAA" - VISIBILIDAD MÓVIL, FLUIDEZ Y BLINDAJE
+# VERSIÓN 48.1 "ACORAZADO VISUAL AAA" - VISIBILIDAD MÓVIL, FLUIDEZ Y BLINDAJE
 # DESARROLLADO PARA: RODRIGO GODOY - RDMLS / VECINOS LA SERENA SPA
 # ==============================================================================
 
@@ -114,7 +114,7 @@ st.markdown("""
         font-weight: 700 !important;
     }
 
-    /* --- 3. SOLUCIÓN AL DOBLE FILETE --- */
+    /* --- 3. SOLUCIÓN AL DOBLE FILETE Y TEXTOS DESPLEGABLES --- */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], 
@@ -132,6 +132,14 @@ st.markdown("""
         border-radius: 8px !important;
         padding: 12px !important;
         outline: none !important;
+    }
+
+    /* ¡NUEVO!: FUERZA A QUE EL TEXTO ELEGIDO SEA NEGRO Y LEGIBLE EN LOS DROPDOWNS */
+    div[data-baseweb="select"] span {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        font-weight: 900 !important;
+        font-size: 1.05rem !important;
     }
 
     /* --- 4. INGENIERÍA DE FLUIDEZ MÓVIL: BOTONERA FIJA INTELIGENTE --- */
@@ -652,12 +660,6 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v48.0 Master Tanque | La Serena Digital")
-
-# --- DISPARADOR DE LÓGICA ---
-if st.session_state.menu_activo == "👤 Portal Prestador": modulo_portal_prestador()
-elif st.session_state.menu_activo == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura()
-elif st.session_state.menu_activo == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas()
-else: modulo_historial_auditoria()
+    st.caption("v48.1 Master Tanque | La Serena Digital")
 
 # Final del Archivo Maestro: Estabilidad, UX Móvil Fluida y Tipografía Blindadas.
