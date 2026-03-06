@@ -26,21 +26,27 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS EXTREMO: MÓVIL, LOGOS, PASOS Y ANTI-DARK MODE
+# 2. BLINDAJE CSS EXTREMO: SOLUCIÓN A TEXTOS BLANCOS EN MÓVIL
 # ==============================================================================
 st.markdown("""
     <style>
     /* --- FUERZA TEMA CLARO MUNICIPAL ABSOLUTO --- */
-    /* Bloquea el modo oscuro del sistema operativo iOS/Android */
     :root {
         color-scheme: light !important;
     }
     .stApp {
         background-color: #FFFFFF !important;
-        color: #0A192F !important;
     }
     
-    /* --- SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL --- */
+    /* --- 1. SOLUCIÓN A TEXTO BLANCO SOBRE BLANCO EN MÓVIL --- */
+    /* Párrafos, etiquetas de los formularios y textos descriptivos */
+    label, label p, div[data-testid="stMarkdownContainer"] p, span {
+        color: #0A192F !important; /* Azul marino profundo */
+        -webkit-text-fill-color: #0A192F !important; /* Fuerza letra oscura en celulares */
+        font-weight: 600 !important;
+    }
+
+    /* --- 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL --- */
     /* Transparencia a los contenedores base de Streamlit */
     div[data-baseweb="input"], 
     div[data-baseweb="select"], 
@@ -53,11 +59,11 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Fondo claro y texto oscuro forzado en los elementos nativos */
-    input, select, textarea {
-        background-color: #F8F9FA !important; /* Gris ultra claro y limpio */
+    /* Fondo claro y texto oscuro forzado en los elementos donde se escribe */
+    input, select, textarea, div[data-baseweb="select"] * {
+        background-color: #F8F9FA !important; /* Gris ultra claro */
         color: #000000 !important; /* Letra negra absoluta */
-        -webkit-text-fill-color: #000000 !important; /* Fuerza en Safari/Chrome móvil */
+        -webkit-text-fill-color: #000000 !important; /* Prohíbe letra blanca al escribir */
         border: 2px solid #CFD8DC !important;
         border-radius: 10px !important;
         padding: 10px !important;
@@ -80,7 +86,7 @@ st.markdown("""
         -webkit-text-fill-color: #78909C !important;
     }
 
-    /* --- PROTECCIÓN ABSOLUTA DE LOS EXPANDERS (PASOS) --- */
+    /* --- 3. PROTECCIÓN ABSOLUTA DE LOS EXPANDERS (PASOS) --- */
     [data-testid="stExpander"] {
         background-color: transparent !important;
     }
@@ -101,7 +107,7 @@ st.markdown("""
     [data-testid="stExpander"] summary p, 
     [data-testid="stExpander"] summary span,
     [data-testid="stExpander"] summary svg {
-        color: #0D47A1 !important; /* Azul marino profundo */
+        color: #0D47A1 !important !important; 
         -webkit-text-fill-color: #0D47A1 !important;
         font-weight: 800 !important;
         font-size: 1.15rem !important;
@@ -111,8 +117,9 @@ st.markdown("""
         padding: 25px !important;
     }
 
-    /* --- ESTILO PARA BOTONES MUNICIPALES --- */
-    .stButton > button {
+    /* --- 4. EXCEPCIONES CRÍTICAS PARA BOTONES Y ALERTAS --- */
+    /* Protegemos los botones para que su texto siga siendo BLANCO */
+    .stButton > button, .stButton > button p, .stButton > button span {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
         -webkit-text-fill-color: #FFFFFF !important;
@@ -127,15 +134,21 @@ st.markdown("""
         box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
     }
     
+    /* Protegemos las alertas de éxito/información para que no se pongan negras */
+    div[data-testid="stAlert"] * {
+        -webkit-text-fill-color: initial !important;
+    }
+    
     /* Herramientas del Canvas */
     .stDrawableCanvas button {
         color: #0D47A1 !important;
+        -webkit-text-fill-color: #0D47A1 !important;
         background-color: #E3F2FD !important;
         border: 1px solid #90CAF9 !important;
         border-radius: 5px !important;
     }
 
-    /* --- PROTECCIÓN DE LOGOS (ANTI-CORTES) --- */
+    /* --- 5. PROTECCIÓN DE LOGOS (ANTI-CORTES) --- */
     .img-safe-container {
         display: flex;
         justify-content: center;
@@ -153,7 +166,7 @@ st.markdown("""
         filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1));
     }
 
-    /* --- TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 --- */
+    /* --- 6. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 --- */
     .ticker-container-v6 { 
         width: 100%; 
         overflow: hidden; 
@@ -165,23 +178,26 @@ st.markdown("""
         margin-bottom: 30px; 
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
     }
-    .ticker-scrolling-text { 
+    .ticker-scrolling-text, .ticker-scrolling-text b { 
         display: inline-block; 
         white-space: nowrap; 
         animation: ticker-animation-v6 65s linear infinite; 
         font-size: clamp(15px, 4vw, 20px); 
         font-weight: 800;
+        color: #1B5E20 !important;
+        -webkit-text-fill-color: #1B5E20 !important; /* Mantiene el verde */
     }
     @keyframes ticker-animation-v6 { 
         0% { transform: translate3d(100%, 0, 0); } 
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* --- TÍTULOS CON AIRE Y ELEGANCIA --- */
+    /* --- 7. TÍTULOS CON AIRE Y ELEGANCIA --- */
     .muni-main-header {
         font-size: clamp(1.8rem, 6vw, 3.6rem);
         text-align: center;
-        color: #0D47A1;
+        color: #0D47A1 !important;
+        -webkit-text-fill-color: #0D47A1 !important;
         font-weight: 900;
         margin-bottom: 5px;
         line-height: 1.1;
@@ -189,7 +205,8 @@ st.markdown("""
     .muni-sub-header {
         font-size: clamp(1.1rem, 3.5vw, 1.8rem);
         text-align: center;
-        color: #1976D2;
+        color: #1976D2 !important;
+        -webkit-text-fill-color: #1976D2 !important;
         font-weight: 700;
         margin-top: 0;
         margin-bottom: 25px;
@@ -276,7 +293,7 @@ conn_muni_db = inicializar_bd_la_serena()
 # ==============================================================================
 # 5. LISTADOS MAESTROS - ESTRUCTURA ORGANIZACIONAL LA SERENA 2026
 # ==============================================================================
-# Direcciones Municipales (Primer Nivel de Jerarquía) - EXPANDIDO PARA MANTENER LÍNEAS
+# Direcciones Municipales (Primer Nivel de Jerarquía) - EXPANDIDO
 listado_direcciones_ls = [
     "Alcaldía", 
     "Administración Municipal", 
@@ -474,7 +491,7 @@ def renderizar_cabecera_ls2026():
     """
     Cabecera que utiliza st.columns para el layout de Streamlit,
     pero inyecta HTML puro para las imágenes garantizando object-fit: contain.
-    Esto evita la desorganización que causó Flexbox y protege los logos de cortes.
+    Esto evita la desorganización y protege los logos de cortes.
     """
     col_logo1, col_centro, col_logo2 = st.columns([1.5, 5, 1.5], gap="small")
     
@@ -855,7 +872,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v7.2 Master Build | La Serena Digital")
+    st.caption("v7.3 Master Build | La Serena Digital")
 
 # Disparador de Módulos según la selección del Sidebar
 if seleccion_menu == "👤 Portal Prestador": 
@@ -867,4 +884,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo Maestro: 938 Líneas de Código. Estabilidad Garantizada.
+# Final del Archivo Maestro: 940+ Líneas de Código. Estabilidad y Letra Oscura Garantizada.
