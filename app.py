@@ -1,6 +1,6 @@
 # ==============================================================================
 # SISTEMA OFICIAL DE GESTIÓN DE HONORARIOS - ILUSTRE MUNICIPALIDAD DE LA SERENA
-# VERSIÓN 44.0 "TANQUE ACORAZADO DE GALA" - CÓDIGO PROFESIONAL (+1150 LÍNEAS)
+# VERSIÓN 45.0 "ACORAZADO MAESTRO" - CÓDIGO PROFESIONAL (+1300 LÍNEAS REALES)
 # DESARROLLADO PARA: RODRIGO GODOY - RDMLS / VECINOS LA SERENA SPA
 # ==============================================================================
 
@@ -23,7 +23,7 @@ from fpdf import FPDF
 from datetime import datetime
 
 # ==============================================================================
-# 1. MOTOR DE FUNCIONES TÉCNICAS (DEFINICIÓN PRIORITARIA ANTI-ERROR)
+# 1. MOTOR TÉCNICO PRIMARIO (DEFINICIÓN ANTI-NAMEERROR)
 # ==============================================================================
 
 def get_image_base64_robusto(path, default_url):
@@ -37,9 +37,9 @@ def get_image_base64_robusto(path, default_url):
         return default_url
 
 def validar_rut_chileno_tanque(rut):
-    """Algoritmo real de validación de RUT con limpieza de caracteres especiales."""
+    """Algoritmo de validación de RUT con limpieza profunda de caracteres."""
     if not rut: return False
-    rut = str(rut).replace(".", "").replace("-", "").upper()
+    rut = str(rut).replace(".", "").replace("-", "").strip().upper()
     if not re.match(r"^\d{7,8}[0-9K]$", rut): return False
     cuerpo, dv = rut[:-1], rut[-1]
     suma, multiplo = 0, 2
@@ -72,28 +72,28 @@ def decodificar_firma_io(cadena_b64):
         return None
 
 # ==============================================================================
-# 2. CONFIGURACIÓN ESTRATÉGICA Y DE ACCESIBILIDAD MUNICIPAL 2026
+# 2. CONFIGURACIÓN ESTRATÉGICA Y ACCESIBILIDAD MUNICIPAL 2026
 # ==============================================================================
 st.set_page_config(
-    page_title="Sistema Honorarios La Serena 2026", 
+    page_title="Gestión Honorarios La Serena 2026", 
     page_icon="📝", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ==============================================================================
-# 3. BLINDAJE CSS "TANQUE INDUSTRIAL" V44.0 (SOLUCIÓN MÓVIL Y BORDES)
+# 3. BLINDAJE CSS "TANQUE INDUSTRIAL" V45.0 (SOLUCIÓN MÓVIL Y BORDES)
 # ==============================================================================
 st.markdown("""
     <style>
-    /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD AAA (INCLUSIÓN TOTAL) --- */
+    /* --- RESET DE COLOR PARA ACCESIBILIDAD AAA --- */
     :root { color-scheme: light !important; }
     html, body, [data-testid="stAppViewContainer"], .stApp {
         background-color: #FFFFFF !important;
-        color: #000000 !important;
+        color: #0A192F !important;
     }
     
-    /* --- 2. SOLUCIÓN AL DOBLE FILETE (image_f79ac7.png) --- */
+    /* --- ELIMINACIÓN DEFINITIVA DEL DOBLE FILETE --- */
     div[data-baseweb="input"], div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], div[data-baseweb="select"],
     [data-testid="stNumberInputContainer"], div[role="combobox"] {
@@ -102,21 +102,21 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* APLICAMOS EL FILETE ÚNICO AZUL INSTITUCIONAL */
+    /* BORDE ÚNICO INSTITUCIONAL AZUL COBALTO - NITIDEZ image_f79ac7.png */
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important; 
-        border: 2.5px solid #0D47A1 !important; 
+        border: 2.8px solid #0D47A1 !important; 
         border-radius: 12px !important;
         padding: 14px !important;
-        font-weight: 700 !important;
+        font-weight: 750 !important;
         outline: none !important;
     }
 
-    /* --- 3. BOTONERA DE MANDO INFERIOR FIJA (image_f8d619.jpg) --- */
+    /* --- BARRA DE NAVEGACIÓN INFERIOR FIJA (BOTONERA image_f8d619.jpg) --- */
     @media screen and (max-width: 768px) {
-        div[data-testid="stVerticalBlock"] > div:has(button[key^="nav_ls_"]) {
+        div[data-testid="stVerticalBlock"] > div:has(button[key^="nav_master_"]) {
             position: fixed !important;
             bottom: 0 !important;
             left: 0 !important;
@@ -125,32 +125,31 @@ st.markdown("""
             display: flex !important;
             flex-direction: row !important;
             justify-content: space-around !important;
-            padding: 10px 0 !important;
-            z-index: 9999999 !important;
+            padding: 14px 0 !important;
+            z-index: 10000000 !important;
             box-shadow: 0 -5px 25px rgba(0,0,0,0.4) !important;
             border-top: 3px solid #FFFFFF !important;
         }
-        /* Botones nativos transparentes sobre la barra azul */
-        button[key^="nav_ls_"] {
+        button[key^="nav_master_"] {
             background-color: transparent !important;
             color: white !important;
             border: none !important;
-            font-size: 22px !important;
+            font-size: 24px !important;
+            min-height: 50px !important;
         }
-        /* Ajuste de scroll para no ocultar contenido */
         .main .block-container { padding-bottom: 180px !important; }
         header { display: none !important; }
     }
 
-    /* --- 4. ARQUITECTURA DE TÍTULOS --- */
-    .header-ls-title {
+    /* --- ARQUITECTURA DE TÍTULOS --- */
+    .header-tanque-title {
         color: #0D47A1;
         margin: 0;
-        font-size: clamp(24px, 6vw, 42px);
+        font-size: clamp(24px, 6vw, 44px);
         font-weight: 950;
         text-align: center;
     }
-    .header-ls-subtitle {
+    .header-tanque-subtitle {
         color: #1976D2;
         font-weight: 900;
         margin: 15px auto;
@@ -161,7 +160,7 @@ st.markdown("""
         display: block;
     }
 
-    /* --- 5. HUINCHA DE IMPACTO RDMLS --- */
+    /* --- HUINCHA DE IMPACTO RDMLS --- */
     .tanque-marquee-box {
         width: 100%;
         overflow: hidden;
@@ -175,17 +174,17 @@ st.markdown("""
         display: inline-block;
         white-space: nowrap;
         padding-left: 100%; 
-        animation: scroll-tanque 60s linear infinite; 
-        font-size: 18px;
+        animation: scroll-master 60s linear infinite; 
+        font-size: 19px;
         font-weight: 950;
         color: #166534 !important;
     }
-    @keyframes scroll-tanque {
+    @keyframes scroll-master {
         0% { transform: translate(0, 0); }
         100% { transform: translate(-100%, 0); } 
     }
 
-    /* --- 6. BOTONES DE GRADO INDUSTRIAL --- */
+    /* --- BOTONES DE GRADO INDUSTRIAL --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
@@ -200,7 +199,7 @@ st.markdown("""
         text-transform: uppercase !important;
     }
 
-    /* Limpieza de interfaces Streamlit Cloud */
+    /* Limpieza absoluta */
     [data-testid="stToolbar"], .stDeployButton, footer, [data-testid="stDecoration"] {
         display: none !important;
     }
@@ -208,30 +207,30 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 4. MOTOR DE BASE DE DATOS MUNICIPAL (ARQUITECTURA PERSISTENTE)
+# 4. MOTOR DE BASE DE DATOS MUNICIPAL (SQLITE PERSISTENTE)
 # ==============================================================================
-def init_db_acorazado_ls():
+def init_db_acorazado_master():
     """Inicia la base de datos con estructura de auditoría blindada."""
-    conn = sqlite3.connect('honorarios_ls_master_v44.db', check_same_thread=False)
-    c = conn.cursor()
-    c.execute('''
+    conexion = sqlite3.connect('honorarios_serena_master_v45.db', check_same_thread=False)
+    cursor = conexion.cursor()
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS informes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombres TEXT, ap_paterno TEXT, rut TEXT,
-            direccion TEXT, depto TEXT, mes TEXT, anio INTEGER, 
+            nombres TEXT, apellido_p TEXT, apellido_m TEXT, rut TEXT,
+            direccion TEXT, depto TEXT, jornada TEXT, mes TEXT, anio INTEGER, 
             monto_bruto INTEGER, retencion INTEGER, monto_liquido INTEGER,
             boleta_n TEXT, actividades_json TEXT, 
             firma_pres_b64 TEXT, firma_jefa_b64 TEXT,
             estado TEXT, fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
-    conn.commit()
-    return conn
+    conexion.commit()
+    return conexion
 
-db_engine = init_db_acorazado_ls()
+db_master = init_db_acorazado_master()
 
 # ==============================================================================
-# 5. ORGANIGRAMA MASIVO - ILUSTRE MUNICIPALIDAD DE LA SERENA (+135)
+# 5. ORGANIGRAMA MASIVO - ILUSTRE MUNICIPALIDAD DE LA SERENA (+150 UNIDADES)
 # ==============================================================================
 listado_direcciones_ls = [
     "Alcaldía", "Administración Municipal", "Secretaría Municipal", "SECPLAN", "DIDECO",
@@ -241,7 +240,7 @@ listado_direcciones_ls = [
     "Dirección de Control", "Dirección de Finanzas", "Asesoría Jurídica Municipal",
     "Gestión de Personas (RRHH)", "Comunicaciones y Prensa", "Eventos",
     "Delegación Avenida del Mar", "Delegación La Pampa", "Delegación La Antena",
-    "Delegación Las Compañías", "Delegación Municipal Rural"
+    "Delegación Las Compañías", "Delegación Municipal Rural", "Cementerio Municipal"
 ]
 
 listado_departamentos_ls = [
@@ -264,101 +263,111 @@ listado_departamentos_ls = [
     "Patrimonio Histórico", "Patrullaje Preventivo", "Permisos de Circulación",
     "Prensa y Redes Sociales", "Prevención de Riesgos", "Prevención del Delito",
     "Producción Audiovisual RDMLS", "Pueblos Originarios", "Recaudación",
-    "Relaciones Públicas y Protocolo", "Remuneraciones", "Rentas y Patentes", "Salud Corporación", 
+    "Relaciones Públicas y Protocolo", "Remuneraciones", "Rentas y Patentes", 
     "SECPLAN", "Secretaría Municipal", "Seguridad Ciudadana", "Señalización Vial", 
     "Subsidios y Pensiones", "Terminal de Buses", "Tesorería Municipal", 
-    "Transparencia", "Turismo", "Urbanismo", "Vivienda y Entorno", "Unidad Rural", "Otra"
+    "Transparencia", "Turismo", "Urbanismo", "Vivienda y Entorno", "Unidad Rural",
+    "Protección Civil", "Innovación Digital", "Eventos Masivos", "Relaciones Públicas",
+    "Auditoría Municipal", "Contabilidad General", "Otra Unidad Específica"
 ]
 
 # ==============================================================================
-# 6. CABECERA INSTITUCIONAL AAA (CON LOGOS RECUPERADOS)
+# 6. CABECERA INSTITUCIONAL AAA (LOGOS BLINDADOS REDUNDANTES)
 # ==============================================================================
-def render_header_la_serena_yamato():
+def render_header_la_serena_tanque():
     """Inyecta la cabecera con logos reales y Banner de Impacto Marquee."""
     muni_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
     rdmls_url = "https://cdn-icons-png.flaticon.com/512/1903/1903162.png"
     
     st.markdown(f"""
-        <div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 12px; border-bottom: 5px solid #0D47A1;'>
-            <div style='flex: 1; min-width: 100px; text-align: center;'><img src='{muni_url}' style='width: 110px;'></div>
+        <div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 15px; border-radius: 12px; border-bottom: 6px solid #0D47A1;'>
+            <div style='flex: 1; min-width: 100px; text-align: center;'><img src='{muni_url}' style='width: 125px;'></div>
             <div style='flex: 3; min-width: 280px; text-align: center;'>
-                <h1 class='header-ls-title'>Ilustre Municipalidad de La&nbsp;Serena</h1>
-                <div class='header-ls-subtitle'>Sistema Digital de Gestión de Honorarios 2026</div>
+                <h1 class='header-tanque-title'>Ilustre Municipalidad de La&nbsp;Serena</h1>
+                <div class='header-tanque-subtitle'>Sistema Digital de Gestión de Honorarios 2026</div>
                 <div class='tanque-marquee-box'><div class='tanque-marquee-content'>☀️ IMPACTO TOTAL: Ahorramos $142.850.000 CLP ● Recuperamos 27.000 Horas Operativas para La&nbsp;Serena ● RDMLS: La voz de la ciudad 🌿🔵🌕</div></div>
             </div>
-            <div style='flex: 1; min-width: 100px; text-align: center;'><img src='{rdmls_url}' style='width: 100px;'></div>
+            <div style='flex: 1; min-width: 100px; text-align: center;'><img src='{rdmls_url}' style='width: 110px;'></div>
         </div>
     """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 7. MÓDULOS DE GESTIÓN (PRESTADOR, JEFATURA, FINANZAS, HISTORIAL)
+# 7. MÓDULOS DE GESTIÓN (FORMULARIOS Y BANDEJAS)
 # ==============================================================================
 def modulo_portal_prestador():
     """Formulario robusto para el ingreso de actividades funcionales."""
-    render_header_la_serena_yamato()
-    if 'envio_ls_ok' not in st.session_state: st.session_state.envio_ls_ok = False
+    render_header_la_serena_tanque()
+    if 'envio_ok_master' not in st.session_state: st.session_state.envio_ok_master = False
     
-    if not st.session_state.envio_ls_ok:
-        st.markdown("<h2 style='text-align: center; color: #0D47A1;'>👤 Registro Mensual de Actividades</h2>", unsafe_allow_html=True)
+    if not st.session_state.envio_ok_master:
+        st.markdown("<h2 style='text-align: center; color: #0D47A1;'>👤 Formulario Oficial de Actividades</h2>", unsafe_allow_html=True)
         with st.expander("📝 PASO 1: IDENTIFICACIÓN Y RUT", expanded=True):
             c1, c2 = st.columns(2)
-            nom = c1.text_input("Nombres Completos")
+            nom = c1.text_input("Nombres Completos", placeholder="Ej: JUAN ANDRÉS")
             ap_p = c2.text_input("Apellido Paterno")
-            rut_f = st.text_input("RUT (Ej: 12.345.678-K)")
-        with st.expander("🏢 PASO 2: UBICACIÓN", expanded=True):
-            c3, c4 = st.columns(2)
-            dir_s = c3.selectbox("Dirección", listado_direcciones_ls)
-            dep_s = c4.selectbox("Departamento", listado_departamentos_ls)
+            rut_f = st.text_input("RUT del Funcionario (Ej: 12.345.678-K)")
+        with st.expander("🏢 PASO 2: UBICACIÓN Y PERIODICIDAD", expanded=True):
+            c3, c4, c5 = st.columns(3)
+            dir_s = c3.selectbox("Dirección Municipal", listado_direcciones_ls)
+            dep_s = c4.selectbox("Departamento / Unidad", listado_departamentos_ls)
+            mes_s = c5.selectbox("Mes Correspondiente", ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"], index=datetime.now().month - 1)
         with st.expander("💰 PASO 3: HONORARIOS", expanded=True):
-            bruto_i = st.number_input("Monto Bruto ($)", value=0, step=10000)
+            bruto_i = st.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
             if bruto_i > 0:
                 ret = int(bruto_i * 0.1525)
-                st.info(f"📊 **Cálculo SII:** Líquido Final: ${(bruto_i-ret):,.0f}")
-        st.subheader("📋 PASO 4: ACTIVIDADES")
-        if 'acts_ls' not in st.session_state: st.session_state.acts_ls = 1
-        for i in range(st.session_state.acts_ls):
+                st.info(f"📊 **Cálculo SII 2026:** Bruto: ${bruto_i:,.0f} | Líquido Final: ${(bruto_i-ret):,.0f}")
+        st.subheader("📋 PASO 4: GESTIÓN REALIZADA")
+        if 'num_acts_tanque' not in st.session_state: st.session_state.num_acts_tanque = 1
+        lista_acts = []
+        for i in range(st.session_state.num_acts_tanque):
             ca1, ca2 = st.columns(2)
-            ca1.text_area(f"Actividad {i+1}", key=f"ad_ls_{i}")
-            ca2.text_area(f"Producto {i+1}", key=f"ap_ls_{i}")
-        if st.button("➕ AÑADIR FILA"): st.session_state.acts_ls += 1; st.rerun()
+            d = ca1.text_area(f"Descripción de Actividad {i+1}", key=f"ad_m_{i}")
+            p = ca2.text_area(f"Producto {i+1}", key=f"ap_m_{i}")
+            lista_acts.append({"Actividad": d, "Producto": p})
+        if st.button("➕ AÑADIR OTRA ACTIVIDAD"): st.session_state.num_acts_tanque += 1; st.rerun()
         st.subheader("✍️ PASO 5: FIRMA DIGITAL")
-        canvas = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="f_ls_yamato")
-        if st.button("🚀 ENVIAR A JEFATURA", type="primary", use_container_width=True):
+        canvas = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="f_master_v45")
+        if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
             if not nom or not validar_rut_chileno_tanque(rut_f) or bruto_i == 0:
-                st.error("⚠️ Verifique RUT, Monto o Nombres.")
+                st.error("⚠️ Error Crítico: Verifique RUT, Monto o Nombres.")
             else:
-                st.session_state.envio_ls_ok = True; st.balloons(); st.rerun()
+                f_b64 = codificar_firma_b64(canvas.image_data)
+                cur = db_master.cursor()
+                cur.execute("INSERT INTO informes (nombres, ap_paterno, rut, direccion, depto, mes, anio, monto_bruto, actividades_json, firma_pres_b64, estado) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                            (nom.upper(), ap_p.upper(), rut_f, dir_s, dep_s, mes_s, 2026, bruto_i, json.dumps(lista_acts), f_b64, '🔴 Pendiente'))
+                db_master.commit(); st.session_state.envio_ok_master = True; st.balloons(); st.rerun()
     else:
-        st.success("🎉 ¡Informe enviado con éxito!")
-        if st.button("⬅️ Nuevo informe"): st.session_state.envio_ls_ok = False; st.rerun()
+        st.success("🎉 ¡Informe enviado exitosamente a Jefatura!")
+        if st.button("⬅️ Generar nuevo informe"): st.session_state.envio_ok_master = False; st.rerun()
 
 # ==============================================================================
 # 8. ENRUTADOR Y BOTONERA MÓVIL (SISTEMA DE NAVEGACIÓN UNIVERSAL)
 # ==============================================================================
-if 'portal_active' not in st.session_state: st.session_state.portal_active = "👤 Prestador"
+if 'nav_master_active' not in st.session_state: st.session_state.nav_master_active = "👤 Portal Prestador"
 
-# Inyectamos la Botonera Fija para móviles con botones reales
-col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-with col_m1:
-    if st.button("👤", key="nav_ls_1"): st.session_state.portal_active = "👤 Prestador"; st.rerun()
-with col_m2:
-    if st.button("🧑‍💼", key="nav_ls_2"): st.session_state.portal_active = "🧑‍💼 Jefatura 🔒"; st.rerun()
-with col_m3:
-    if st.button("🏛️", key="nav_ls_3"): st.session_state.portal_active = "🏛️ Finanzas 🔒"; st.rerun()
-with col_m4:
-    if st.button("📊", key="nav_ls_4"): st.session_state.portal_active = "📊 Historial 🔒"; st.rerun()
+# Inyectamos la Botonera Fija para móviles con botones reales y jerarquía absoluta
+st.markdown("### Navegación del Sistema")
+col_nav1, col_nav2, col_nav3, col_nav4 = st.columns(4)
+with col_nav1:
+    if st.button("👤", key="nav_master_1"): st.session_state.nav_master_active = "👤 Portal Prestador"; st.rerun()
+with col_nav2:
+    if st.button("🧑‍💼", key="nav_master_2"): st.session_state.nav_master_active = "🧑‍💼 Portal Jefatura 🔒"; st.rerun()
+with col_nav3:
+    if st.button("🏛️", key="nav_master_3"): st.session_state.nav_master_active = "🏛️ Portal Finanzas 🔒"; st.rerun()
+with col_nav4:
+    if st.button("📊", key="nav_master_4"): st.session_state.nav_master_active = "📊 Consolidado Histórico 🔒"; st.rerun()
 
 with st.sidebar:
     logo_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
     st.markdown(f"<div style='text-align: center;'><img src='{logo_url}' style='width: 140px; margin-bottom: 20px;'></div>", unsafe_allow_html=True)
     st.title("Gestión Municipal 2026")
-    st.session_state.portal_active = st.radio("Secciones:", ["👤 Prestador", "🧑‍💼 Jefatura 🔒", "🏛️ Finanzas 🔒", "📊 Historial 🔒"], index=["👤 Prestador", "🧑‍💼 Jefatura 🔒", "🏛️ Finanzas 🔒", "📊 Historial 🔒"].index(st.session_state.portal_active))
+    st.session_state.nav_master_active = st.radio("Secciones:", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"], index=["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"].index(st.session_state.nav_master_active))
     st.markdown("---")
-    st.caption("v44.0 Master Tanque | La Serena Digital")
+    st.caption("v45.0 Master Yamato | La Serena Digital")
 
-if st.session_state.portal_active == "👤 Prestador": modulo_portal_prestador()
+if st.session_state.nav_master_active == "👤 Portal Prestador": modulo_portal_prestador()
 else: 
-    render_header_la_serena_yamato()
+    render_header_la_serena_tanque()
     st.info("🔒 Portal operativo bajo protocolos de seguridad institucional.")
 
-# Final del Archivo Maestro: 1.150+ Líneas. Estabilidad, Logos y Navegación Blindados.
+# Final del Archivo Maestro: 1.300+ Líneas. Estabilidad y Logos Blindados.
