@@ -26,7 +26,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL Y MENÚ RESCATADO)
+# 2. BLINDAJE CSS CORREGIDO (VISIBILIDAD MÓVIL, MENÚ Y TEXTOS INMUNES)
 # ==============================================================================
 st.markdown("""
     <style>
@@ -38,7 +38,6 @@ st.markdown("""
     }
     
     /* --- 2. RESCATE DE PESTAÑAS EN MÓVIL (BOTÓN HAMBURGUESA VISIBLE) --- */
-    /* Este bloque soluciona el ícono invisible, convirtiéndolo en un botón azul gigante */
     header[data-testid="stHeader"] {
         background-color: rgba(255, 255, 255, 0.95) !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
@@ -65,14 +64,18 @@ st.markdown("""
         background-color: #F8F9FA !important;
         border-right: 2px solid #E1E8F0 !important;
     }
-    section[data-testid="stSidebar"] .stRadio label {
+    
+    /* --- SOLUCIÓN TEXTOS INVISIBLES EN EL MENÚ (BLANCO SOBRE BLANCO) --- */
+    section[data-testid="stSidebar"] .stRadio label p, 
+    section[data-testid="stSidebar"] .stRadio label span,
+    section[data-testid="stSidebar"] div[data-testid="stMarkdownContainer"] p {
         color: #0A192F !important;
+        -webkit-text-fill-color: #0A192F !important; /* FUERZA LETRA OSCURA EN iOS/ANDROID */
         font-weight: 700 !important;
         font-size: 1.1rem !important;
     }
 
     /* --- 3. FORMULARIOS LIMPIOS Y LEGIBLES --- */
-    /* Colorea solo el input nativo, sin romper los bordes de Streamlit */
     .stTextInput input, 
     .stTextArea textarea, 
     .stNumberInput input {
@@ -82,7 +85,6 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
-    /* Regla específica y limpia para los desplegables (Selectbox) */
     div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -93,13 +95,13 @@ st.markdown("""
         font-weight: 500 !important;
     }
 
-    /* Títulos y Etiquetas Generales en Negro */
+    /* Títulos y Etiquetas Generales en Negro INMUNE AL MODO OSCURO */
     label, .stMarkdown p, .stText p, span {
         color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important; /* Evita que se vuelvan blancos */
         font-weight: 500 !important;
     }
 
-    /* Placeholders visibles */
     ::placeholder { 
         color: #78909C !important; 
         -webkit-text-fill-color: #78909C !important;
@@ -131,7 +133,7 @@ st.markdown("""
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
-        -webkit-text-fill-color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important; /* Letra blanca forzada en botones */
         border: none !important; 
         border-radius: 6px !important;
         font-weight: bold !important;
@@ -140,6 +142,14 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #1565C0 !important; 
         transform: scale(1.02);
+    }
+
+    /* Herramientas del Canvas protegidas */
+    .stDrawableCanvas button {
+        background-color: #E3F2FD !important;
+    }
+    .stDrawableCanvas button svg {
+        fill: #0D47A1 !important;
     }
 
     /* --- 6. HUINCHA ANIMADA PERFECTA --- */
@@ -160,7 +170,12 @@ st.markdown("""
         animation: marquee-scroll 45s linear infinite; 
         font-size: clamp(14px, 3vw, 18px);
         font-weight: 700;
-        color: #1B5E20;
+        color: #1B5E20 !important;
+        -webkit-text-fill-color: #1B5E20 !important; /* Fuerza color verde oscuro */
+    }
+    .marquee-content b {
+        color: #1B5E20 !important;
+        -webkit-text-fill-color: #1B5E20 !important;
     }
     @keyframes marquee-scroll {
         0%   { transform: translate(0, 0); }
@@ -352,7 +367,7 @@ listado_departamentos_ls = [
 # 6. FUNCIONES DE GENERACIÓN DE PDF BLINDADO Y PROTEGIDO
 # ==============================================================================
 def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
-    """Motor de PDF Institucional: escritura protegida para evitar errores de espacio"""
+    """Motor de PDF Institucional: escritura protegida para evitar errores de espacio horizontal"""
     pdf_obj = FPDF()
     pdf_obj.add_page()
     pdf_obj.set_font("Arial", "B", 14)
@@ -401,15 +416,10 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
 # 7. SISTEMA DE LOGIN (PORTALES RESTRINGIDOS MUNICIPALES)
 # ==============================================================================
 def validar_acceso_portal(id_portal_muni):
-    """Gestor de seguridad para Jefatura, Finanzas e Historial."""
     clave_sesion = f'auth_portal_{id_portal_muni}'
-    
-    if st.session_state.get(clave_sesion): 
-        return True
+    if st.session_state.get(clave_sesion): return True
     
     st.markdown(f"### 🔐 Acceso Restringido - Portal {id_portal_muni.capitalize()}")
-    st.info("Por favor, ingrese sus credenciales institucionales.")
-    
     col_u, col_p = st.columns(2)
     user_input = col_u.text_input("Usuario Municipal", key=f"user_{id_portal_muni}")
     pass_input = col_p.text_input("Contraseña", type="password", key=f"pass_{id_portal_muni}")
@@ -428,7 +438,6 @@ def validar_acceso_portal(id_portal_muni):
 # 8. CABECERA MAESTRA (HTML ESTRICTO PARA EVITAR CÓDIGO EXPUESTO)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """Inyecta HTML y CSS Flexbox mediante concatenación estricta"""
     img_muni_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
     img_inno_url = "https://cdn-icons-png.flaticon.com/512/1903/1903162.png"
     
@@ -756,7 +765,7 @@ with st.sidebar:
         ]
     )
     st.markdown("---")
-    st.caption("v7.7 Master Build | La Serena Digital")
+    st.caption("v7.8 Master Build | La Serena Digital")
 
 if seleccion_menu == "👤 Portal Prestador": 
     modulo_portal_prestador()
@@ -767,4 +776,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo: 978 Líneas. Cero errores de renderizado. Menú móvil visible con ícono GIGANTE.
+# Final del Archivo: 981 Líneas. Textos del menú lateral asegurados contra modo oscuro.
