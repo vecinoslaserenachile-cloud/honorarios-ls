@@ -1,6 +1,6 @@
 # ==============================================================================
 # SISTEMA OFICIAL DE GESTIÓN DE HONORARIOS - ILUSTRE MUNICIPALIDAD DE LA SERENA
-# VERSIÓN 46.5 "ACORAZADO DEFINITIVO" - FLUIDEZ MÓVIL Y BLINDAJE
+# VERSIÓN 48.0 "ACORAZADO VISUAL AAA" - VISIBILIDAD MÓVIL, FLUIDEZ Y BLINDAJE
 # DESARROLLADO PARA: RODRIGO GODOY - RDMLS / VECINOS LA SERENA SPA
 # ==============================================================================
 
@@ -77,18 +77,39 @@ def decodificar_firma_io(cadena_b64):
         return None
 
 # ==============================================================================
-# 3. BLINDAJE CSS "TANQUE INDUSTRIAL" (FLUIDEZ MÓVIL Y BORDES)
+# 3. BLINDAJE CSS "TANQUE INDUSTRIAL" (VISIBILIDAD ABSOLUTA Y FLUIDEZ MÓVIL)
 # ==============================================================================
 st.markdown("""
     <style>
-    /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL --- */
+    /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL (BLANCO ABSOLUTO) --- */
     :root { color-scheme: light !important; }
     html, body, [data-testid="stAppViewContainer"], .stApp {
         background-color: #FFFFFF !important;
         color: #0A192F !important;
     }
     
-    /* --- 2. SOLUCIÓN AL DOBLE FILETE --- */
+    /* --- 2. RESCATE DE TEXTOS INVISIBLES EN CELULARES (LABELS Y PLACEHOLDERS) --- */
+    /* Forzamos que las instrucciones arriba de los cuadros sean oscuras siempre */
+    label, [data-testid="stWidgetLabel"] p, label div {
+        color: #0D47A1 !important;
+        -webkit-text-fill-color: #0D47A1 !important;
+        font-weight: 800 !important;
+        font-size: 1rem !important;
+    }
+    /* Forzamos que el texto de ayuda dentro del cuadro (ej. "Ej: JUAN") sea gris oscuro */
+    input::placeholder, textarea::placeholder {
+        color: #78909C !important;
+        -webkit-text-fill-color: #78909C !important;
+        opacity: 1 !important;
+    }
+    /* Si el usuario escribe algo, debe verse negro nítido */
+    input, textarea, select {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        font-weight: 700 !important;
+    }
+
+    /* --- 3. SOLUCIÓN AL DOBLE FILETE --- */
     div[data-baseweb="input"], 
     div[data-baseweb="base-input"], 
     div[data-baseweb="textarea"], 
@@ -101,17 +122,14 @@ st.markdown("""
     }
     
     input, textarea, select, div[data-baseweb="select"] > div {
-        background-color: #FFFFFF !important;
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important; 
+        background-color: #F8FAFC !important; /* Fondo gris súper claro para contraste */
         border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
-        font-weight: 600 !important;
         outline: none !important;
     }
 
-    /* --- 3. INGENIERÍA DE FLUIDEZ MÓVIL: BOTONERA FIJA INTELIGENTE --- */
+    /* --- 4. INGENIERÍA DE FLUIDEZ MÓVIL: BOTONERA FIJA INTELIGENTE --- */
     @media screen and (max-width: 768px) {
         section[data-testid="stSidebar"] { display: none !important; }
         button[data-testid="collapsedControl"] { display: none !important; }
@@ -141,7 +159,7 @@ st.markdown("""
             font-size: 28px !important;
         }
 
-        /* Ocultar la botonera automáticamente cuando el teclado aparece */
+        /* Ocultar la botonera automáticamente cuando el teclado aparece para no estorbar */
         .stApp:has(input:focus, textarea:focus) div[data-testid="stVerticalBlock"] > div:has(button[key^="nav_m_"]) {
             opacity: 0 !important;
             pointer-events: none !important;
@@ -158,7 +176,7 @@ st.markdown("""
         .main .block-container { padding-bottom: 100px !important; }
     }
 
-    /* --- 4. ARQUITECTURA DE TÍTULOS RESPONSIVA --- */
+    /* --- 5. ARQUITECTURA DE TÍTULOS RESPONSIVA --- */
     .header-title-ls {
         color: #0D47A1;
         margin: 0;
@@ -177,7 +195,7 @@ st.markdown("""
         display: block;
     }
 
-    /* --- 5. HUINCHA ANIMADA (MARQUEE) --- */
+    /* --- 6. HUINCHA ANIMADA (MARQUEE) --- */
     .marquee-container-ls {
         width: 100%;
         overflow: hidden;
@@ -202,10 +220,11 @@ st.markdown("""
         100% { transform: translate(-100%, 0); } 
     }
 
-    /* --- 6. BOTONES INSTITUCIONALES --- */
+    /* --- 7. BOTONES INSTITUCIONALES (ENVIAR) --- */
     .stButton > button {
         background-color: #0D47A1 !important; 
         color: #FFFFFF !important; 
+        -webkit-text-fill-color: #FFFFFF !important; 
         border-radius: 8px !important;
         font-weight: 950 !important;
         padding: 20px !important;
@@ -401,9 +420,9 @@ def modulo_portal_prestador():
         with st.expander("📝 Paso 1: Identificación y RUT", expanded=True):
             col_id1, col_id2, col_id3 = st.columns(3)
             tx_nombres = col_id1.text_input("Nombres Completos", placeholder="Ej: JUAN ANDRÉS")
-            tx_ap_paterno = col_id2.text_input("Apellido Paterno")
-            tx_ap_materno = col_id3.text_input("Apellido Materno")
-            tx_rut = st.text_input("RUT del Funcionario (Ej: 12.345.678-K)")
+            tx_ap_paterno = col_id2.text_input("Apellido Paterno", placeholder="PÉREZ")
+            tx_ap_materno = col_id3.text_input("Apellido Materno", placeholder="GONZÁLEZ")
+            tx_rut = st.text_input("RUT del Funcionario", placeholder="Ej: 12.345.678-K")
 
         with st.expander("🏢 Paso 2: Ubicación Organizacional", expanded=True):
             col_org1, col_org2 = st.columns(2)
@@ -421,15 +440,15 @@ def modulo_portal_prestador():
                 val_retencion = int(num_bruto * 0.1525) 
                 val_liquido = num_bruto - val_retencion
                 st.info(f"📊 **Cálculo Tributario:** Bruto: ${num_bruto:,.0f} | Retención SII (15.25%): ${val_retencion:,.0f} | **Líquido Final: ${val_liquido:,.0f}**")
-            tx_boleta = st.text_input("Nº de Boleta de Honorarios SII")
+            tx_boleta = st.text_input("Nº de Boleta de Honorarios SII", placeholder="Ingrese el número de su boleta")
 
         st.subheader("📋 Paso 4: Resumen de Actividades Realizadas")
         if 'contador_acts' not in st.session_state: st.session_state.contador_acts = 1
             
         for i in range(st.session_state.contador_acts):
             col_act1, col_act2 = st.columns(2)
-            col_act1.text_area(f"Actividad Realizada {i+1}", key=f"act_desc_{i}")
-            col_act2.text_area(f"Resultado Obtenido {i+1}", key=f"act_prod_{i}")
+            col_act1.text_area(f"Actividad Realizada {i+1}", key=f"act_desc_{i}", placeholder="Describa la actividad principal ejecutada...")
+            col_act2.text_area(f"Resultado Obtenido {i+1}", key=f"act_prod_{i}", placeholder="Especifique el producto final o informe...")
         
         col_btn1, col_btn2 = st.columns(2)
         with col_btn1:
@@ -451,7 +470,7 @@ def modulo_portal_prestador():
         st.markdown("<hr>", unsafe_allow_html=True)
         if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN TÉCNICA", type="primary", use_container_width=True):
             if not tx_nombres or not validar_rut_chileno_tanque(tx_rut) or num_bruto == 0 or canvas_firma.image_data is None:
-                st.error("⚠️ Error: Verifique RUT, Nombres, Apellidos, Monto o Firma.")
+                st.error("⚠️ Error Crítico: Por favor, complete RUT válido, Nombres, Monto Bruto y dibuje su firma.")
             else:
                 firma_b64 = codificar_firma_b64(canvas_firma.image_data)
                 lista_actividades = [{"Actividad": st.session_state[f"act_desc_{x}"], "Producto": st.session_state[f"act_prod_{x}"]} for x in range(st.session_state.contador_acts)]
@@ -465,7 +484,7 @@ def modulo_portal_prestador():
                 """, (tx_nombres.upper(), tx_ap_paterno.upper(), tx_ap_materno.upper(), tx_rut, sel_dir, sel_dep, sel_jornada, sel_mes, num_anio, num_bruto, tx_boleta, json.dumps(lista_actividades), firma_b64, '🔴 Pendiente'))
                 conn_muni_db.commit()
 
-                # GENERACIÓN DE DOCUMENTO
+                # GENERACIÓN DE DOCUMENTO (WORD Y PDF)
                 try:
                     doc_word = DocxTemplate("plantilla_base.docx")
                     ctx_doc = {
@@ -629,7 +648,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v46.5 Master Tanque | La Serena Digital")
+    st.caption("v48.0 Master Tanque | La Serena Digital")
 
 # --- DISPARADOR DE LÓGICA ---
 if st.session_state.menu_activo == "👤 Portal Prestador": modulo_portal_prestador()
@@ -637,4 +656,4 @@ elif st.session_state.menu_activo == "🧑‍💼 Portal Jefatura 🔒": modulo_
 elif st.session_state.menu_activo == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas()
 else: modulo_historial_auditoria()
 
-# Final del Archivo Maestro.
+# Final del Archivo Maestro: Estabilidad, UX Móvil Fluida y Tipografía Blindadas.
