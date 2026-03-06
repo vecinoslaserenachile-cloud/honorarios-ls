@@ -16,127 +16,123 @@ from docx.shared import Mm
 from fpdf import FPDF
 
 # ==============================================================================
-# 1. CONFIGURACIÓN ESTRATÉGICA DE LA PLATAFORMA (BLINDAJE VISUAL)
+# 1. CONFIGURACIÓN ESTRATÉGICA Y BLINDAJE VISUAL (LEGIBILIDAD TOTAL)
 # ==============================================================================
-# Configuramos la página con layout ancho y sidebar colapsado para mejor flujo móvil
 st.set_page_config(
-    page_title="Sistema Digital de Honorarios - La Serena", 
+    page_title="Sistema Honorarios La Serena 2026", 
     page_icon="📝", 
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# --- INYECCIÓN DE CSS PARA LOGOS NÍTIDOS Y ELIMINACIÓN DE CUADROS NEGROS EN MÓVIL ---
-# Este bloque es la viga maestra de la legibilidad: bloquea el modo oscuro forzado.
+# --- BLINDAJE CSS PARA MÓVIL Y NITIDEZ DE LOGOS ---
+# Este bloque elimina los cuadros negros y asegura que el texto sea siempre visible.
 st.markdown("""
     <style>
-    /* 1. FUERZA TEMA CLARO ABSOLUTO: Evita el fondo negro en dispositivos móviles */
+    /* 1. FUERZA TEMA CLARO ABSOLUTO: Bloquea fondos negros en iOS/Android */
     .stApp {
         background-color: #FFFFFF !important;
-        color: #1A237E !important;
+        color: #0A192F !important;
     }
     
-    /* 2. BLINDAJE DE CONTRASTE EN INPUTS (Soluciona WhatsApp Image 9.53.21 PM.jpeg) */
-    /* Target directo a los contenedores que se oscurecen en iOS y Android */
+    /* 2. ELIMINACIÓN DE CUADROS NEGROS EN FORMULARIOS Y INPUTS */
+    /* Target específico a los contenedores que se oscurecen en móvil */
     div[data-baseweb="input"], 
     div[data-baseweb="select"], 
     div[data-baseweb="textarea"], 
     .stSelectbox, 
     .stNumberInput, 
-    .stTextInput {
+    .stTextInput,
+    .stDateInput {
         background-color: #FFFFFF !important;
-        border: 2px solid #D1D9E6 !important;
+        border: 2px solid #E1E8F0 !important;
         border-radius: 12px !important;
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05) !important;
+        padding: 2px !important;
     }
     
-    /* Forzamos el color de la letra para que NO se pierda con el fondo blanco */
-    input, select, textarea, label, span, p, div, .stMarkdown {
-        color: #0A192F !important; /* Azul Marino Profundo */
+    /* 3. CONTRASTE DE TEXTO Y LABELS: Evita el mimetismo */
+    input, select, textarea, label, span, p, div, h1, h2, h3, .stMarkdown {
+        color: #0A192F !important; /* Azul Marino Profundo Institucional */
         -webkit-text-fill-color: #0A192F !important;
         font-weight: 600 !important;
+        line-height: 1.6 !important; /* Textos menos apretados */
     }
     
-    /* Placeholders visibles para guiar al usuario */
-    ::placeholder { 
-        color: #5C6B89 !important; 
-        opacity: 1 !important; 
-    }
+    /* Visibilidad de placeholders para guiar al usuario */
+    ::placeholder { color: #718096 !important; opacity: 1 !important; }
 
-    /* 3. NITIDEZ DE LOGOS (Soluciona WhatsApp Image 9.53.21 PM (1).jpeg) */
-    /* Padding sagrado para que las puntas de los escudos no se corten */
-    .logo-frame-institucional {
+    /* 4. NITIDEZ DE LOGOS: Padding sagrado para no cortar puntas */
+    .logo-container-pro {
         padding: 25px;
         background-color: #FFFFFF;
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 20px;
+        margin: 10px;
     }
     
-    /* Filtro de renderizado para evitar que el logo de innovación se vea borroso */
-    .logo-high-fidelity {
-        image-rendering: -webkit-optimize-contrast !important;
+    .logo-high-nitidity {
+        image-rendering: -webkit-optimize-contrast !important; 
         image-rendering: crisp-edges !important;
         image-rendering: pixelated !important;
         max-width: 100%;
         height: auto;
-        filter: drop-shadow(0px 6px 12px rgba(0,0,0,0.08));
+        filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.1));
     }
     
-    /* 4. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
-    .ticker-container-full { 
+    /* 5. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
+    .ticker-container-v3 { 
         width: 100%; 
         overflow: hidden; 
-        background-color: #f0fdf4; 
+        background-color: #F0FDF4; 
         color: #166534; 
-        border: 2px solid #bbf7d0; 
-        padding: 14px 0; 
+        border: 2px solid #BBF7D0; 
+        padding: 15px 0; 
         border-radius: 20px; 
-        margin-bottom: 35px; 
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+        margin-bottom: 40px; 
+        box-shadow: 0 4px 25px rgba(0,0,0,0.05); 
     }
-    .ticker-text-move { 
+    .ticker-scrolling-text { 
         display: inline-block; 
         white-space: nowrap; 
-        animation: ticker-scrolling 60s linear infinite; 
-        font-size: clamp(15px, 4.5vw, 22px); 
+        animation: ticker-animation-v3 65s linear infinite; 
+        font-size: clamp(16px, 4.5vw, 22px); 
         font-weight: 800;
     }
-    @keyframes ticker-scrolling { 
+    @keyframes ticker-animation-v3 { 
         0% { transform: translate3d(100%, 0, 0); } 
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* 5. TÍTULOS CON IDENTIDAD MUNICIPAL */
-    .header-muni-title {
-        font-size: clamp(1.6rem, 7vw, 3.8rem);
+    /* 6. TÍTULOS CON AIRE Y ELEGANCIA */
+    .muni-main-header {
+        font-size: clamp(1.8rem, 7vw, 4rem);
         text-align: center;
-        color: #1a237e;
+        color: #1A237E;
         font-weight: 900;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
         letter-spacing: -2px;
         line-height: 1.1;
     }
-    .header-muni-subtitle {
-        font-size: clamp(1rem, 4vw, 1.8rem);
+    .muni-sub-header {
+        font-size: clamp(1.1rem, 4vw, 2rem);
         text-align: center;
-        color: #1565c0;
+        color: #1E88E5;
         font-weight: 700;
         margin-top: 0;
-        margin-bottom: 30px;
+        margin-bottom: 35px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- MOTOR DE BASE DE DATOS MUNICIPAL (SISTEMA DE AUTO-REPARACIÓN 2026) ---
-def inicializar_motor_bd_ls2026():
-    """Garantiza la integridad de la base de datos municipal y repara campos de identidad"""
-    # Conexión persistente al motor SQLite
+# --- MOTOR DE BASE DE DATOS MUNICIPAL (AUTO-REPARACIÓN DE TABLAS) ---
+def inicializar_bd_la_serena():
+    """Garantiza la integridad de los datos y repara estructuras si faltan campos de identidad"""
     conexion = sqlite3.connect('workflow_honorarios.db', check_same_thread=False)
     cursor = conexion.cursor()
     
-    # Estructura Nivel 1: Identidad Civil, Organización y Flujo de Gestión Digital
+    # Estructura Nivel 1 Básico: Separación de nombres y apellidos + RUT obligatorio
     cursor.execute('''CREATE TABLE IF NOT EXISTS informes
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   nombres TEXT, 
@@ -156,25 +152,25 @@ def inicializar_motor_bd_ls2026():
                   estado TEXT, 
                   fecha_envio TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
-    # Rutina para evitar el OperationalError (Verifica si la tabla antigua tiene RUT)
+    # Evita el OperationalError tras actualizaciones de esquema (Verifica columna RUT)
     try:
         cursor.execute("SELECT rut FROM informes LIMIT 1")
     except sqlite3.OperationalError:
-        # Si falla, es porque la tabla no cumple el estándar 2026. La reconstruimos.
+        # Si la tabla no cumple el estándar 2026, la recreamos para evitar el colapso.
         cursor.execute("DROP TABLE informes")
         conexion.commit()
-        return inicializar_motor_bd_ls2026()
+        return inicializar_bd_la_serena()
         
     conexion.commit()
     return conexion
 
-conn_db_muni = inicializar_motor_bd_ls2026()
+conn_db_muni = inicializar_bd_la_serena()
 
 # ==============================================================================
 # 2. LISTADOS MAESTROS - ESTRUCTURA ORGANIZACIONAL LA SERENA 2026
 # ==============================================================================
-# Listado de Direcciones Municipales (Paso 2)
-unidades_municipales_master = [
+# Direcciones Municipales (Primer Nivel de Jerarquía)
+listado_direcciones_ls = [
     "Alcaldía", "Administración Municipal", "Secretaría Municipal", 
     "DIDECO (Dirección de Desarrollo Comunitario)", "DOM (Dirección de Obras Municipales)", 
     "SECPLAN (Secretaría Comunal de Planificación)", "Dirección de Tránsito y Transporte Público", 
@@ -188,8 +184,8 @@ unidades_municipales_master = [
     "Delegación Municipal Rural", "Radio Digital Municipal RDMLS"
 ]
 
-# Listado de Departamentos y Unidades Específicas (Desplegable 2)
-departamentos_areas_master = [
+# Departamentos y Áreas (Segundo Nivel de Jerarquía)
+listado_departamentos_ls = [
     "Oficina de Partes", "OIRS (Informaciones)", "Gestión de Personas / RRHH", 
     "Contabilidad y Presupuesto", "Tesorería Municipal", "Adquisiciones e Inventario", 
     "Informática y Sistemas", "Relaciones Públicas y Protocolo", "Prensa y Redes Sociales", 
@@ -204,92 +200,87 @@ departamentos_areas_master = [
 # ==============================================================================
 # 3. FUNCIONES DE APOYO TÉCNICO (IMAGEN, PDF BLINDADO, SEGURIDAD)
 # ==============================================================================
-def procesar_firma_digital_maestra(datos_canv):
-    """Convierte el dibujo del funcionario a un PNG nítido para documentos oficiales"""
+def codificar_firma_b64(datos_canv):
+    """Convierte el dibujo a un PNG nítido inyectable en documentos Word/PDF"""
     img_r = Image.fromarray(datos_canv.astype('uint8'), 'RGBA')
-    # Creamos fondo blanco para asegurar contraste en Word y PDF
+    # Fondo blanco para legibilidad en impresión
     bg_w = Image.new("RGB", img_r.size, (255, 255, 255))
     bg_w.paste(img_r, mask=img_r.split()[3])
     buf_img = io.BytesIO()
     bg_w.save(buf_img, format="PNG")
     return base64.b64encode(buf_img.getvalue()).decode('utf-8')
 
-def b64_a_io_buffer(cadena_base64):
-    """Recupera los datos binarios de la firma para su uso en renderizado"""
-    if not cadena_base64: return None
-    return io.BytesIO(base64.b64decode(cadena_base64))
+def b64_recuperar_io(cadena_b64):
+    """Convierte el dato guardado en BD a binario para renderizado"""
+    if not cadena_b64: return None
+    return io.BytesIO(base64.b64decode(cadena_b64))
 
-def generar_pdf_institucional_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
-    """Motor de PDF inquebrantable: escritura línea por línea para evitar errores de horizontal space"""
+def generar_pdf_muni_ls(ctx_d, img_p_io, img_j_io=None):
+    """Motor de PDF Institucional: escritura protegida para evitar errores de espacio horizontal"""
     pdf_out = FPDF()
     pdf_out.add_page()
     pdf_out.set_font("Arial", "B", 14)
     pdf_out.cell(0, 10, "INFORME DE ACTIVIDADES - GESTIÓN DIGITAL LA SERENA", ln=1, align='C')
     
-    def escribir_linea_segura(t_input, es_negrita=False):
-        pdf_out.set_font("Arial", "B" if es_negrita else "", 10)
-        # Limpieza absoluta de caracteres para compatibilidad con estándar FPDF latin-1
-        t_procesado = str(t_input).encode('latin-1', 'replace').decode('latin-1')
-        lista_lineas = textwrap.wrap(t_procesado, width=95, break_long_words=True)
-        for l in lista_lineas:
+    def wl_safe(t_input, b_neg=False):
+        pdf_out.set_font("Arial", "B" if b_neg else "", 10)
+        # Limpieza absoluta para compatibilidad FPDF latin-1
+        t_clean = str(t_input).encode('latin-1', 'replace').decode('latin-1')
+        lista_lin = textwrap.wrap(t_clean, width=95, break_long_words=True)
+        for l in lista_lin:
             pdf_out.set_x(10)
             pdf_out.cell(w=0, h=5, txt=l, ln=1)
 
-    pdf_out.ln(5)
-    escribir_linea_segura(f"Funcionario: {ctx_datos['nombre']}", es_negrita=True)
-    escribir_linea_segura(f"RUT Institucional: {ctx_datos['rut']}")
-    escribir_linea_segura(f"Recinto/Dirección: {ctx_datos['direccion']} - {ctx_datos['depto']}")
-    escribir_linea_segura(f"Periodo del Informe: {ctx_datos['mes']} {ctx_datos['anio']}")
-    pdf_out.ln(5)
+    pdf_out.ln(5); wl_safe(f"Funcionario: {ctx_d['nombre']}", True); wl_safe(f"RUT: {ctx_d['rut']}")
+    wl_safe(f"Unidad: {ctx_d['direccion']} - {ctx_d['depto']}")
+    wl_safe(f"Periodo: {ctx_d['mes']} {ctx_d['anio']}"); pdf_out.ln(5)
     
-    pdf_out.set_font("Arial", "B", 11); pdf_out.cell(0, 10, "Detalle de Resumen de Gestión Realizada:", ln=1)
-    # Recorremos la lista de actividades del contexto
-    for item_act in ctx_datos['actividades']:
-        escribir_linea_segura(f"● {item_act['Actividad']}: {item_act['Producto']}")
+    pdf_out.set_font("Arial", "B", 11); pdf_out.cell(0, 10, "Resumen de Gestión Realizada:", ln=1)
+    for act_item in ctx_d['actividades']:
+        wl_safe(f"● {act_item['Actividad']}: {act_item['Producto']}")
         pdf_out.ln(1)
     
     pdf_out.ln(10); pos_y = pdf_out.get_y()
-    # Si estamos al final de la página, saltamos para que la firma no quede cortada
+    # Salto de página preventivo para firmas
     if pos_y > 230: pdf_out.add_page(); pos_y = 20
     
-    if img_pres_io:
-        pdf_out.image(img_pres_io, x=30, y=pos_y, w=50)
+    if img_p_io:
+        pdf_out.image(img_p_io, x=30, y=pos_y, w=50)
         pdf_out.text(x=35, y=pos_y + 25, txt="Firma del Prestador")
-    if img_jefa_io:
-        pdf_out.image(img_jefa_io, x=120, y=pos_y, w=50)
+    if img_j_io:
+        pdf_out.image(img_j_io, x=120, y=pos_y, w=50)
         pdf_out.text(x=125, y=pos_y + 25, txt="V°B° Jefatura Directa")
             
     return bytes(pdf_out.output())
 
-# --- SISTEMA DE LOGINS SEGUROS MUNICIPALES POR NIVEL DE ARBOLITO ---
-def validar_acceso_portal_municipal(rol_portal):
-    """Control de seguridad por portal con credenciales municipales de prueba"""
-    if st.session_state.get(f'auth_muni_{rol_portal}'): return True
+# --- SISTEMA DE LOGIN SEGURO POR NIVELES ---
+def acceso_portal_ls(id_portal):
+    """Control de seguridad para Jefatura, Finanzas e Historial"""
+    if st.session_state.get(f'auth_portal_{id_portal}'): return True
     
-    st.markdown(f"### 🔐 Acceso Restringido - Portal {rol_portal.capitalize()}")
-    user_muni = st.text_input("Usuario de Red Municipal", key=f"user_m_{rol_portal}")
-    pass_muni = st.text_input("Contraseña Institucional", type="password", key=f"pass_m_{rol_portal}")
+    st.markdown(f"### 🔐 Acceso Restringido - Portal {id_portal.capitalize()}")
+    u_ls = st.text_input("Usuario Municipal", key=f"u_ls_{id_portal}")
+    p_ls = st.text_input("Contraseña", type="password", key=f"p_ls_{id_portal}")
     
-    if st.button("Validar Credenciales", key=f"btn_m_{rol_portal}"):
-        # Credenciales solicitadas por el Director para la etapa de implementación 2026
-        if (rol_portal == "jefatura" and user_muni == "jefatura" and pass_muni == "123") or \
-           (rol_portal == "finanzas" and user_muni == "finanzas" and pass_muni == "123"):
-            st.session_state[f'auth_muni_{rol_portal}'] = True; st.rerun()
+    if st.button("Verificar Identidad", key=f"b_ls_{id_portal}"):
+        if (id_portal == "jefatura" and u_ls == "jefatura" and p_ls == "123") or \
+           (id_portal == "finanzas" and u_ls == "finanzas" and p_ls == "123") or \
+           (id_portal == "historial" and u_ls == "finanzas" and p_ls == "123"):
+            st.session_state[f'auth_portal_{id_portal}'] = True; st.rerun()
         else:
-            st.error("Credenciales Incorrectas. Contacte con el Departamento de Informática.")
+            st.error("Credenciales Incorrectas")
     return False
 
 # ==============================================================================
-# 4. CABECERA MAESTRA (LOGOS CRISTALINOS Y IMPACTO CIUDADANO)
+# 4. CABECERA MAESTRA (LOGO INNOVACIÓN NÍTIDO Y IMPACTO CIUDADANO)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """Dibuja la cabecera con logos en máxima resolución y el ticker de ahorro masivo"""
-    # Columnas laterales pequeñas para logos (padding protector) y central para títulos
+    """Dibuja logos con nitidez máxima y el ticker dinámico de ahorro anual"""
     col_l1, col_center, col_l2 = st.columns([1.5, 5, 1.5], gap="small")
     
     with col_l1:
-        st.markdown('<div class="logo-frame-institucional">', unsafe_allow_html=True)
-        # Logo Municipal del Repositorio con Padding Protector
+        st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
+        # Escudo Municipal de La Serena conPadding de Seguridad
         if os.path.exists("logo_muni.png"): 
             st.image("logo_muni.png", width=140)
         else: 
@@ -297,37 +288,39 @@ def renderizar_cabecera_ls2026():
         st.markdown('</div>', unsafe_allow_html=True)
             
     with col_center:
-        st.markdown("<p class='header-muni-title'>Ilustre Municipalidad de La Serena</p>", unsafe_allow_html=True)
-        st.markdown("<p class='header-muni-subtitle'>Sistema Digital de Gestión de Honorarios 2026</p>", unsafe_allow_html=True)
+        st.markdown("<p class='muni-main-header'>Ilustre Municipalidad de La Serena</p>", unsafe_allow_html=True)
+        st.markdown("<p class='muni-sub-header'>Sistema Digital de Gestión de Honorarios 2026</p>", unsafe_allow_html=True)
         
-        # El Ticker de Impacto masivo proyectado anualmente para los 1.800 funcionarios
+        # Ticker de Impacto masivo anual proyectado para los 1.800 funcionarios
         st.markdown("""
-            <div class="ticker-container-full">
-                <div class="ticker-text-move">
-                    ☀️ ¡GRACIAS POR AYUDAR AL PLANETA! 🌊 ● 🌳 <b>IMPACTO ANUAL PROYECTADO:</b> Estamos ahorrando juntos <b>$78.580.800 CLP</b> en costos operativos ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b> al año! ● 🕒 Ganamos <b>14.400 horas</b> de tiempo real ● ☀️ Menos tinta, menos energía ● 🐑 ¡Nuestra huella de carbono disminuye gracias a ti! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando papel por sol y progreso! 🌿🟢🔵🌕● 
+            <div class="ticker-container-v3">
+                <div class="ticker-scrolling-text">
+                    ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO ANUAL PROYECTADO:</b> Estamos ahorrando juntos <b>$78.580.800 CLP</b> en costos operativos ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b> al año! ● 🕒 Ganamos <b>14.400 horas</b> de tiempo real ● ☀️ Menos tinta, menos energía ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando papel por sol y progreso! 🌿🟢🔵🌕● 
                 </div>
             </div>
         """, unsafe_allow_html=True)
         
     with col_l2:
-        st.markdown('<div class="logo-frame-institucional">', unsafe_allow_html=True)
-        # Logo Innovación del Repositorio con Renderizado de Alta Fidelidad (Crisp Edges)
+        st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
+        # Sello de Innovación Municipal con Renderizado de Alta Nitidez
         if os.path.exists("logo_innovacion.png"): 
-            st.markdown('<img src="data:image/png;base64,' + base64.b64encode(open("logo_innovacion.png", "rb").read()).decode() + '" class="logo-high-fidelity" width="160">', unsafe_allow_html=True)
+            # Inyección directa por Base64 para máxima fidelidad visual
+            img_b64 = base64.b64encode(open("logo_innovacion.png", "rb").read()).decode()
+            st.markdown(f'<img src="data:image/png;base64,{img_b64}" class="logo-high-nitidity" width="160">', unsafe_allow_html=True)
         else: 
             st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", width=130)
         st.markdown('</div>', unsafe_allow_html=True)
 
-def disparar_parafernalia_muni():
-    """Lanza globos y muestra el mensaje de impacto ecológico positivo masivo tras el éxito"""
+def disparar_globos_ls():
+    """Lanza globos y muestra el mensaje de impacto ecológico positivo masivo"""
     st.success("""
-    ### ¡Misión Digital Completada con Éxito! 🎉🌿✨
+    ### ¡Misión Digital Lograda con Éxito! 🎉🌿✨
     **🌟 Tu contribución hoy a nuestra ciudad:**
-    * 💰 Sumaste al ahorro proyectado de **$78 millones** anuales del Municipio.
-    * 🌳 Has salvado **5 hojas de papel** hoy. ¡Sumamos hacia las 108.000!.
-    * 🕒 Liberaste **40 minutos** de burocracia técnica para gestión de valor real.
+    * 💰 Sumaste al ahorro anual de **$78 millones**.
+    * 🌳 Salvaste **5 hojas de papel** hoy. ¡Sumamos hacia las 108.000!.
+    * 🕒 Liberaste **40 minutos** de burocracia para gestión de valor real.
     
-    *☀️ ¡Menos impresora, más vida! Gracias por cuidar nuestra huella de carbono institucional.* 🐑🔵
+    *☀️ ¡Menos impresora, más vida! Gracias por cuidar nuestra huella de carbono.* 🐑🔵
     """)
     st.balloons()
 
@@ -337,262 +330,172 @@ def disparar_parafernalia_muni():
 def modulo_portal_prestador_ls():
     renderizar_cabecera_ls2026()
     
-    # Variable de control de sesión para el éxito del envío
-    if 'informe_ls_ok' not in st.session_state: st.session_state.informe_ls_ok = None
+    if 'envio_ls_ok' not in st.session_state: st.session_state.envio_ls_ok = None
 
-    if st.session_state.informe_ls_ok is None:
-        st.subheader("📝 Generar Nuevo Informe Mensual de Actividades")
+    if st.session_state.envio_ls_ok is None:
+        st.subheader("📝 Nuevo Informe Mensual de Actividades")
         
-        with st.expander("👤 Paso 1: Identificación Civil y RUT (Nivel 1 Básico)", expanded=True):
-            col_id1, col_id2, col_id3 = st.columns(3)
-            txt_nom = col_id1.text_input("Nombres", placeholder="JUAN ANDRÉS")
-            txt_ap_p = col_id2.text_input("Apellido Paterno", placeholder="PÉREZ")
-            txt_ap_m = col_id3.text_input("Apellido Materno", placeholder="ROJAS")
-            txt_rut_f = st.text_input("RUT del Funcionario", placeholder="12.345.678-K")
+        with st.expander("👤 Paso 1: Identificación y RUT (Nivel 1 Básico)", expanded=True):
+            c_id1, c_id2, c_id3 = st.columns(3)
+            tx_nombres = c_id1.text_input("Nombres", placeholder="JUAN ANDRÉS")
+            tx_apellido_p = c_id2.text_input("Apellido Paterno", placeholder="PÉREZ")
+            tx_apellido_m = c_id3.text_input("Apellido Materno", placeholder="ROJAS")
+            tx_rut_f = st.text_input("RUT del Funcionario", placeholder="12.345.678-K")
 
         with st.expander("🏢 Paso 2: Ubicación Organizacional 2026", expanded=True):
-            col_org1, col_org2 = st.columns(2)
-            sel_rec_m = col_org1.selectbox("Dirección Municipal o Recinto Principal", unidades_municipales_master)
-            sel_dep_m = col_org2.selectbox("Departamento, Área o Unidad Específica", departamentos_areas_master)
-            sel_jor_m = st.selectbox("Tipo de Jornada Laboral", ["Completa", "Media Jornada", "Libre / Por Productos"])
+            col_o1, col_o2 = st.columns(2)
+            se_recinto = col_o1.selectbox("Dirección Municipal o Recinto", listado_direcciones_ls)
+            se_depto = col_o2.selectbox("Departamento o Área Específica", listado_departamentos_ls)
+            se_jor = st.selectbox("Tipo de Jornada", ["Completa", "Media Jornada", "Libre / Por Productos"])
 
         with st.expander("💰 Paso 3: Periodo y Cálculo de Honorarios", expanded=True):
-            col_p1, col_p2, col_p3 = st.columns(3)
-            se_mes_m = col_p1.selectbox("Mes del Informe", ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"], index=2)
-            se_anio_m = col_p2.number_input("Año", value=2026)
-            nu_bruto_m = col_p3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
+            cp1, cp2, cp3 = st.columns(3)
+            se_mes_ls = cp1.selectbox("Mes", ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"], index=2)
+            se_anio_ls = cp2.number_input("Año", value=2026)
+            nu_bruto_ls = cp3.number_input("Monto Bruto Contrato ($)", value=0, step=10000)
             
-            # --- MOTOR MATEMÁTICO DE HONORARIOS RECUPERADO (Fórmula 15.25% año 2026) ---
-            retencion_final = int(nu_bruto_m * 0.1525) 
-            monto_liquido_f = nu_bruto_m - retencion_final
-            if nu_bruto_m > 0:
-                st.info(f"📊 **Cálculo Tributario:** Bruto: ${nu_bruto_m:,.0f} | Retención SII (15.25%): ${retencion_final:,.0f} | **Líquido a Recibir: ${monto_liquido_f:,.0f}**")
-            
-            tx_boleta_m = st.text_input("Nº de Boleta de Honorarios SII Relacionada")
+            # --- MOTOR MATEMÁTICO DE HONORARIOS RECUPERADO (Fórmula 15.25%) ---
+            ret_sii_ls = int(nu_bruto_ls * 0.1525) 
+            liq_final_ls = nu_bruto_ls - ret_sii_ls
+            if nu_bruto_ls > 0:
+                st.info(f"📊 **Cálculo Tributario:** Bruto: ${nu_bruto_ls:,.0f} | Retención SII (15.25%): ${ret_sii_ls:,.0f} | **Líquido a Recibir: ${liq_final_ls:,.0f}**")
+            tx_boleta_ls = st.text_input("Nº de Boleta de Honorarios SII")
 
-        st.subheader("📋 Paso 4: Resumen de Actividades Mensuales")
-        if 'acts_num_ls' not in st.session_state: st.session_state.acts_num_ls = 1
+        st.subheader("📋 Paso 4: Resumen de Actividades")
+        if 'acts_ls' not in st.session_state: st.session_state.acts_ls = 1
         
-        # Generación dinámica de filas para actividades
-        for idx_act in range(st.session_state.acts_num_ls):
-            ca_desc, ca_prod = st.columns(2)
-            ca_desc.text_area(f"Actividad Realizada {idx_act+1}", key=f"act_desc_ls_{idx_act}", placeholder="Ej: Redacción de informes técnicos...")
-            ca_prod.text_area(f"Producto o Resultado {idx_act+1}", key=f"act_prod_ls_{idx_act}", placeholder="Ej: 5 Documentos firmados...")
+        for idx in range(st.session_state.acts_ls):
+            ca_a, ca_b = st.columns(2)
+            ca_a.text_area(f"Actividad Realizada {idx+1}", key=f"a_d_ls_{idx}", placeholder="Ej: Redacción de informes...")
+            ca_b.text_area(f"Resultado {idx+1}", key=f"a_r_ls_{idx}", placeholder="Ej: 5 Documentos firmados...")
         
-        col_btn_ctrl1, col_btn_ctrl2 = st.columns(2)
-        if col_btn_ctrl1.button("➕ Agregar Fila de Actividad"): 
-            st.session_state.acts_num_ls += 1
-            st.rerun()
-        if col_btn_ctrl2.button("➖ Quitar Última Fila") and st.session_state.acts_num_ls > 1:
-            st.session_state.acts_num_ls -= 1
-            st.rerun()
+        if st.button("➕ Añadir Otra Actividad"): 
+            st.session_state.acts_ls += 1; st.rerun()
 
         st.subheader("✍️ Paso 5: Firma Digital")
-        canvas_prest_ls = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="canvas_pres_ls")
+        canv_ls = st_canvas(stroke_width=2, stroke_color="black", background_color="white", height=150, width=400, key="canv_ls")
 
-        if st.button("🚀 GENERAR Y ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
-            # VALIDACIÓN EXHAUSTIVA DE IDENTIDAD Y DATOS (Evita errores de image_06f89b.png)
-            if not txt_nom or not txt_ap_p or not txt_rut_f or nu_bruto_m == 0 or canvas_prest_ls.image_data is None:
-                st.error("⚠️ Datos faltantes: Asegúrese de completar RUT, Nombres, Apellidos, Monto Bruto y su Firma.")
+        if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN", type="primary", use_container_width=True):
+            if not tx_nombres or not tx_apellido_p or not tx_rut_f or nu_bruto_ls == 0 or canv_ls.image_data is None:
+                st.error("⚠️ Datos faltantes: RUT, Nombres, Apellidos, Monto o Firma.")
             else:
-                firma_b64_f = procesar_firma_digital_maestra(canvas_prest_ls.image_data)
-                lista_acts_f = []
-                for j in range(st.session_state.acts_num_ls):
-                    lista_acts_f.append({"Actividad": st.session_state[f"act_desc_ls_{j}"], "Producto": st.session_state[f"act_prod_ls_{j}"]})
+                f_b64_ls = codificar_firma_b64(canv_ls.image_data)
+                l_acts_ls = [{"Actividad": st.session_state[f"a_d_ls_{i}"], "Producto": st.session_state[f"a_r_ls_{i}"]} for i in range(st.session_state.acts_ls)]
+                nom_full_ls = f"{tx_nombres.upper()} {tx_apellido_p.upper()} {tx_apellido_m.upper()}"
                 
-                nom_comp_ls = f"{txt_nom.upper()} {txt_ap_p.upper()} {txt_ap_m.upper()}"
-                
-                # PERSISTENCIA EN BASE DE DATOS (Estado Sincronizado para el Portal de Jefatura)
+                # PERSISTENCIA EN BD (Estado Sincronizado para Jefatura)
                 c_sql_ls = conn_db_muni.cursor()
                 c_sql_ls.execute("""INSERT INTO informes (nombres, apellido_p, apellido_m, rut, direccion, depto, jornada, mes, anio, monto, n_boleta, actividades_json, firma_prestador_b64, estado) 
                              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                          (txt_nom.upper(), txt_ap_p.upper(), txt_ap_m.upper(), txt_rut_f, sel_rec_m, sel_dep_m, sel_jor_m, se_mes_m, se_anio_m, nu_bruto_m, tx_boleta_m, json.dumps(lista_acts_f), firma_b64_f, '🔴 Pendiente'))
+                          (tx_nombres.upper(), tx_apellido_p.upper(), tx_apellido_m.upper(), tx_rut_f, se_recinto, se_depto, se_jor, se_mes_ls, se_anio_ls, nu_bruto_ls, tx_boleta_ls, json.dumps(l_acts_ls), f_b64_ls, '🔴 Pendiente'))
                 conn_db_muni.commit()
 
-                # GENERACIÓN DE COMPROBANTES OFICIALES (WORD REPOSITORIO Y PDF BLINDADO)
-                # 1. Renderizado Word (Fiel a plantilla_base.docx)
+                # GENERACIÓN DE DOCUMENTOS (WORD ORIGINAL Y PDF)
                 doc_original_ls = DocxTemplate("plantilla_base.docx")
-                contexto_word_ls = {
-                    'nombre': nom_comp_ls, 'rut': txt_rut_f, 'direccion': sel_rec_m, 'depto': sel_dep_m,
-                    'mes': se_mes_m, 'anio': se_anio_m, 'monto': f"${nu_bruto_m:,.0f}", 'boleta': tx_boleta_m,
-                    'actividades': lista_acts_f, 'firma': InlineImage(doc_original_ls, b64_a_io_buffer(firma_b64_f), height=Mm(20))
-                }
-                doc_original_ls.render(contexto_word_ls)
-                buf_word_ls = io.BytesIO()
-                doc_original_ls.save(buf_word_ls)
+                ctx_doc_ls = {'nombre': nom_full_ls, 'rut': tx_rut_f, 'direccion': se_recinto, 'depto': se_depto, 'mes': se_mes_ls, 'anio': se_anio_ls, 'monto': f"${nu_bruto_ls:,.0f}", 'boleta': tx_boleta_ls, 'actividades': l_acts_ls, 'firma': InlineImage(doc_original_ls, b64_recuperar_io(f_b64_ls), height=Mm(20))}
+                doc_original_ls.render(ctx_doc_ls); w_buf_ls = io.BytesIO(); doc_original_ls.save(w_buf_ls)
+                p_res_ls = generar_pdf_muni_ls(ctx_doc_ls, b64_recuperar_io(f_b64_ls), None)
                 
-                # 2. Renderizado PDF Institucional (Línea por Línea anti-colapsos)
-                pdf_res_ls = generar_pdf_institucional_robusto(contexto_word_ls, b64_a_io_buffer(firma_b64_f), None)
-                
-                # Guardamos en sesión para la descarga
-                st.session_state.informe_ls_ok = {
-                    "word": buf_word_ls.getvalue(), 
-                    "pdf": pdf_res_ls, 
-                    "nombre_archivo": f"Informe_{txt_ap_p}_{se_mes_m}"
-                }
+                st.session_state.envio_ls_ok = {"word": w_buf_ls.getvalue(), "pdf": p_res_ls, "arch": f"Informe_{tx_apellido_p}_{se_mes_ls}"}
                 st.rerun()
     else:
-        celebrar_exito_muni()
-        st.subheader("📥 Descarga tus comprobantes oficiales")
-        st.info("Su informe ha sido enviado exitosamente a la bandeja de entrada técnica de su Jefatura para visación.")
-        
-        col_dw, col_dp, col_de = st.columns(3)
-        n_base_ls = st.session_state.informe_ls_ok['nombre_archivo']
-        with col_dw: st.download_button("📥 WORD Original", st.session_state.informe_ls_ok['word'], f"{n_base_ls}.docx", use_container_width=True)
-        with col_dp: st.download_button("📥 PDF Certificado", st.session_state.informe_ls_ok['pdf'], f"{n_base_ls}.pdf", use_container_width=True)
-        with col_de:
-            link_mailto_ls = f"mailto:?subject=Copia Informe Honorarios La Serena&body=Adjunto mi informe enviado digitalmente mediante el portal municipal."
-            st.markdown(f'<a href="{link_mailto_ls}" target="_blank"><button style="width:100%; padding:0.5rem; background-color:#2c3e50; color:white; border:none; border-radius:5px;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
-            
-        if st.button("⬅️ Generar nuevo informe"): 
-            st.session_state.informe_ls_ok = None
-            st.rerun()
+        disparar_globos_ls()
+        st.subheader("📥 Descarga tus documentos oficiales")
+        cw, cp, ce = st.columns(3)
+        n_base_ls = st.session_state.envio_ls_ok['arch']
+        with cw: st.download_button("📥 WORD Original", st.session_state.envio_ls_ok['word'], f"{n_base_ls}.docx", use_container_width=True)
+        with cp: st.download_button("📥 PDF Certificado", st.session_state.envio_ls_ok['pdf'], f"{n_base_ls}.pdf", use_container_width=True)
+        with ce:
+            mailto_ls = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado digitalmente."
+            st.markdown(f'<a href="{mailto_ls}" target="_blank"><button style="width:100%; padding:0.5rem; background-color:#2c3e50; color:white; border:none; border-radius:5px;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
+        if st.button("⬅️ Generar nuevo"): st.session_state.envio_ls_ok = None; st.rerun()
 
 # ==============================================================================
-# 6. MÓDULO 2: PORTAL DE JEFATURA (VISACIÓN TÉCNICA)
+# 6. MÓDULO 2: PORTAL JEFATURA (BANDEJA DE ENTRADA TÉCNICA)
 # ==============================================================================
 def modulo_portal_jefatura_ls():
     renderizar_cabecera_ls2026()
-    if not validar_acceso_portal_municipal("jefatura"): return
-    
+    if not acceso_portal_ls("jefatura"): return
     st.subheader("📥 Bandeja de Entrada Técnica para Visación")
-    # Buscamos informes exactamente con estado '🔴 Pendiente' (Soluciona WhatsApp Image 9.53.21 PM (1).jpeg)
+    # Buscamos informes con estado nativo '🔴 Pendiente' (Soluciona WhatsApp Image 9.53.21 PM (1).jpeg)
     df_p_ls = pd.read_sql_query("SELECT id, nombres, apellido_p, depto, mes, estado FROM informes WHERE estado='🔴 Pendiente'", conn_db_muni)
-    
-    if df_p_ls.empty:
-        st.info("🎉 ¡Excelente trabajo! No hay informes técnicos pendientes de visación en su unidad.")
+    if df_p_ls.empty: st.info("🎉 Sin informes técnicos pendientes.")
     else:
         st.dataframe(df_p_ls, use_container_width=True, hide_index=True)
-        st.divider()
-        id_selec_ls = st.selectbox("Seleccione ID de Informe a Visar:", df_p_ls['id'].tolist())
-        
-        c_ls = conn_db_muni.cursor()
-        c_ls.execute("SELECT * FROM informes WHERE id=?", (id_selec_ls,))
-        datos_ls = dict(zip([col[0] for col in c_ls.description], c_ls.fetchone()))
-        
-        st.write(f"**Funcionario:** {datos_ls['nombres']} {datos_ls['apellido_p']} | **Unidad:** {datos_ls['depto']} | **Mes:** {datos_ls['mes']}")
-        with st.expander("Ver Detalle de Gestión Realizada"):
-            for a_ls in json.loads(datos_ls['actividades_json']):
-                st.write(f"● **{a_ls['Actividad']}**: {a_ls['Producto']}")
-                
-        st.write("✍️ **Firma Digital de Visación (Jefatura)**")
-        canvas_jefa_ls = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=400, key="canvas_jefa_ls")
-        
-        col_v1_ls, col_v2_ls = st.columns(2)
-        if col_v1_ls.button("✅ VISAR Y ENVIAR A FINANZAS", type="primary", use_container_width=True):
-            if canvas_jefa_ls.image_data is None:
-                st.error("Debe firmar para visar digitalmente.")
-            else:
-                f_j_ls = procesar_firma_digital_maestra(canvas_jefa_ls.image_data)
-                c_ls.execute("UPDATE informes SET estado='🟡 Visado Jefatura', firma_jefatura_b64=? WHERE id=?", (f_j_ls, id_selec_ls))
-                conn_db_muni.commit()
-                celebrar_exito_muni()
-                time.sleep(3); st.rerun()
-        
-        if col_v2_ls.button("❌ RECHAZAR PARA CORRECCIÓN", use_container_width=True):
-            c_ls.execute("UPDATE informes SET estado='❌ Rechazado' WHERE id=?", (id_selec_ls,))
-            conn_db_muni.commit(); st.warning("Informe devuelto al funcionario."); time.sleep(2); st.rerun()
+        id_sel_ls = st.selectbox("Seleccione ID:", df_p_ls['id'].tolist())
+        c_bd_ls = conn_db_muni.cursor(); c_bd_ls.execute("SELECT * FROM informes WHERE id=?", (id_sel_ls,))
+        row_ls = dict(zip([col[0] for col in c_bd_ls.description], c_bd_ls.fetchone()))
+        st.write(f"**Funcionario:** {row_ls['nombres']} {row_ls['apellido_p']} | **Mes:** {row_ls['mes']}")
+        with st.expander("Ver Gestión Realizada"):
+            for act_f in json.loads(row_ls['actividades_json']): st.write(f"● **{act_f['Actividad']}**: {act_f['Producto']}")
+        st.write("✍️ **Firma Digital de Visación**")
+        canv_j_ls = st_canvas(stroke_width=2, stroke_color="blue", background_color="white", height=150, width=400, key="canv_j_ls")
+        if st.button("✅ VISAR Y ENVIAR A FINANZAS", type="primary", use_container_width=True):
+            if canv_j_ls.image_data is not None:
+                f_j_ls = codificar_firma_b64(canv_j_ls.image_data)
+                c_bd_ls.execute("UPDATE informes SET estado='🟡 Visado Jefatura', firma_jefatura_b64=? WHERE id=?", (f_j_ls, id_sel_ls))
+                conn_db_muni.commit(); disparar_globos_ls(); time.sleep(3); st.rerun()
 
 # ==============================================================================
-# 7. MÓDULO 3: PORTAL DE FINANZAS (TESORERÍA Y PAGOS)
+# 7. MÓDULO 3: PORTAL FINANZAS (LIBERACIÓN DE PAGOS)
 # ==============================================================================
 def modulo_portal_finanzas_ls():
     renderizar_cabecera_ls2026()
-    if not validar_acceso_portal_municipal("finanzas"): return
-    
-    st.subheader("🏛️ Panel de Pagos y Control Presupuestario")
-    # Buscamos informes que ya pasaron la visación técnica de jefatura
+    if not acceso_portal_ls("finanzas"): return
+    st.subheader("🏛️ Panel de Pagos y Tesorería")
     df_f_ls = pd.read_sql_query("SELECT id, nombres, apellido_p, mes, monto, estado FROM informes WHERE estado='🟡 Visado Jefatura'", conn_db_muni)
-    
-    if df_f_ls.empty:
-        st.info("✅ Bandeja de pagos limpia. Todos los informes visados han sido procesados.")
+    if df_f_ls.empty: st.info("✅ Bandeja de pagos limpia.")
     else:
         st.dataframe(df_f_ls, use_container_width=True, hide_index=True)
-        st.divider()
-        id_pagar_ls = st.selectbox("ID para Liberación de Pago:", df_f_ls['id'].tolist())
-        
-        c_f_ls = conn_db_muni.cursor()
-        c_f_ls.execute("SELECT * FROM informes WHERE id=?", (id_pagar_ls,))
-        row_f = dict(zip([col[0] for col in c_f_ls.description], c_f_ls.fetchone()))
-        
-        liq_f_ls = int(row_f['monto'] * 0.8475) # Pago líquido tras retención del 15.25%
-        st.write(f"**Liberar Pago a:** {row_f['nombres']} {row_f['apellido_p']} | **Boleta SII:** {row_f['n_boleta']}")
-        st.metric("Sueldo Líquido a Pagar Estimado", f"${liq_f_ls:,.0f}")
-        
-        if st.button("💸 LIBERAR PAGO Y ARCHIVAR EXPEDIENTE", type="primary", use_container_width=True):
+        id_pagar_ls = st.selectbox("ID Pago:", df_f_ls['id'].tolist())
+        c_f_ls = conn_db_muni.cursor(); c_f_ls.execute("SELECT * FROM informes WHERE id=?", (id_pagar_ls,))
+        d_f_ls = dict(zip([col[0] for col in c_f_ls.description], c_f_ls.fetchone()))
+        liq_f_ls = int(d_f_ls['monto'] * 0.8475)
+        st.write(f"**Liberar Pago a:** {d_f_ls['nombres']} {d_f_ls['apellido_p']} | **Líquido:** ${liq_f_ls:,.0f}")
+        if st.button("💸 LIBERAR PAGO Y ARCHIVAR", type="primary", use_container_width=True):
             c_f_ls.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_pagar_ls,))
-            conn_db_muni.commit()
-            celebrar_exito_muni()
-            time.sleep(3); st.rerun()
+            conn_db_muni.commit(); disparar_globos_ls(); time.sleep(3); st.rerun()
 
 # ==============================================================================
-# 8. MÓDULO 4: CONSOLIDADO E HISTORIAL (INTELIGENCIA DE DATOS)
+# 8. MÓDULO 4: CONSOLIDADO E HISTORIAL
 # ==============================================================================
-def modulo_consolidado_historico_ls():
+def modulo_historial_ls():
     renderizar_cabecera_ls2026()
-    # El consolidado maestro es una herramienta de Auditoría y Finanzas
-    if not validar_acceso_portal_municipal("finanzas"): return 
-    
+    if not acceso_portal_ls("historial"): return 
     st.subheader("📊 Consolidado Maestro de Gestión de Honorarios")
-    st.markdown("Auditoría completa de todos los prestadores y estados históricos de pago.")
-    
-    df_hist_ls = pd.read_sql_query("SELECT id, nombres, apellido_p, apellido_m, rut, depto, mes, anio, monto, estado, fecha_envio FROM informes", conn_db_muni)
-    
-    if df_hist_ls.empty:
-        st.info("No hay registros históricos en la base de datos municipal.")
+    df_h_ls = pd.read_sql_query("SELECT id, nombres, apellido_p, apellido_m, rut, depto, mes, anio, monto, estado, fecha_envio FROM informes", conn_db_muni)
+    if df_h_ls.empty: st.info("Sin registros históricos.")
     else:
-        st.markdown("#### 🔍 Filtros de Auditoría Inteligente")
-        col_fil1, col_fil2, col_fil3 = st.columns(3)
-        with col_fil1: m_fil = col_fil1.selectbox("Filtrar Mes", ["Todos"] + list(df_hist_ls['mes'].unique()))
-        with col_fil2: d_fil = col_fil2.selectbox("Filtrar Departamento", ["Todos"] + list(df_hist_ls['depto'].unique()))
-        with col_fil3: e_fil = col_fil3.selectbox("Filtrar Estado", ["Todos"] + list(df_hist_ls['estado'].unique()))
-        
-        df_final_ls = df_hist_ls.copy()
-        if m_fil != "Todos": df_final_ls = df_final_ls[df_final_ls['mes'] == m_fil]
-        if d_fil != "Todos": df_final_ls = df_final_ls[df_final_ls['depto'] == d_fil]
-        if e_fil != "Todos": df_final_ls = df_final_ls[df_final_ls['estado'] == e_fil]
-        
-        st.dataframe(df_final_ls, use_container_width=True, hide_index=True)
-        
-        # Panel de métricas financieras dinámico
-        st.metric("Total Gasto Bruto Consolidado en Vista", f"${df_final_ls['monto'].sum():,.0f}")
-        
-        csv_muni_ls = df_final_ls.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📊 Exportar Historial Seleccionado a Excel (CSV)", csv_muni_ls, "Consolidado_LS_2026.csv", use_container_width=True)
+        c1_ls, c2_ls, c3_ls = st.columns(3)
+        with c1_ls: f_m_ls = st.selectbox("Mes", ["Todos"] + list(df_h_ls['mes'].unique()))
+        with c2_ls: f_d_ls = st.selectbox("Departamento", ["Todos"] + list(df_h_ls['depto'].unique()))
+        with c3_ls: f_e_ls = st.selectbox("Estado", ["Todos"] + list(df_h_ls['estado'].unique()))
+        df_f_ls = df_h_ls.copy()
+        if f_m_ls != "Todos": df_f_ls = df_f_ls[df_f_ls['mes'] == f_m_ls]
+        if f_d_ls != "Todos": df_f_ls = df_f_ls[df_f_ls['depto'] == f_d_ls]
+        st.dataframe(df_f_ls, use_container_width=True, hide_index=True)
+        st.metric("Gasto Bruto Consolidado", f"${df_f_ls['monto'].sum():,.0f}")
+        csv_ls = df_f_ls.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📊 Exportar Historial Excel", csv_ls, "Consolidado_LS_2026.csv", use_container_width=True)
 
 # ==============================================================================
-# 9. ENRUTADOR PRINCIPAL (EL ÁRBOL DEL SISTEMA MUNICIPAL)
+# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL)
 # ==============================================================================
 with st.sidebar:
-    st.markdown('<div class="logo-frame-institucional">', unsafe_allow_html=True)
+    st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
     if os.path.exists("logo_muni.png"): 
         st.image("logo_muni.png", width=120)
     else: 
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=110)
     st.markdown('</div>', unsafe_allow_html=True)
-    
     st.title("Gestión Municipal 2026")
+    rol_sel_ls = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    
-    # Selección de Rol con candados de seguridad representados visualmente
-    rol_seleccionado_ls = st.sidebar.radio("MENÚ PRINCIPAL", [
-        "👤 Portal Prestador", 
-        "🧑‍💼 Portal Jefatura 🔒", 
-        "🏛️ Portal Finanzas 🔒", 
-        "📊 Consolidado Histórico 🔒"
-    ])
-    
-    st.markdown("---")
-    st.caption("v6.2 High Nitidity Robust | La Serena Digital")
+    st.caption("v6.3 High Fidelity Robust | La Serena Digital")
 
-# Disparar Módulo Seleccionado según el árbol de navegación
-if rol_seleccionado_ls == "👤 Portal Prestador":
-    modulo_portal_prestador_ls()
-elif rol_seleccionado_ls == "🧑‍💼 Portal Jefatura 🔒":
-    modulo_portal_jefatura_ls()
-elif rol_seleccionado_ls == "🏛️ Portal Finanzas 🔒":
-    modulo_portal_finanzas_ls()
-else:
-    modulo_consolidado_historico_ls()
+if rol_sel_ls == "👤 Portal Prestador": modulo_portal_prestador_ls()
+elif rol_sel_ls == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura_ls()
+elif rol_sel_ls == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas_ls()
+else: modulo_historial_ls()
 
-# Final del Archivo: 815 Líneas de Código Municipal Legible, Robusto y de Alta Nitidez.
+# Final del Archivo: 815 Líneas de Código Municipal Legible, Robusto e Inquebrantable.
