@@ -1,9 +1,7 @@
 # ==============================================================================
 # SISTEMA OFICIAL DE GESTIÓN DE HONORARIOS - ILUSTRE MUNICIPALIDAD DE LA SERENA
-# VERSIÓN 48.9 "ACORAZADO VISUAL AAA" - BLINDAJE INDUSTRIAL Y LECTURA CRÍTICA
+# VERSIÓN 50.0 "ACORAZADO VISUAL AAA" - BLINDAJE INDUSTRIAL, LECTURA CRÍTICA Y SEGURIDAD
 # DESARROLLADO PARA: RODRIGO GODOY - RDMLS / VECINOS LA SERENA SPA
-# ==============================================================================
-# ESTÁNDAR: 800+ LÍNEAS / PERSISTENCIA SQL / UI RESPONSIVA / CONTRASTE TOTAL
 # ==============================================================================
 
 import streamlit as st
@@ -77,7 +75,7 @@ def decodificar_firma_io(cadena_b64):
     if not cadena_b64: return None
     try:
         b_io = io.BytesIO(base64.b64decode(cadena_b64))
-        b_io.seek(0) # FIX BINARIO
+        b_io.seek(0)
         return b_io
     except Exception:
         return None
@@ -87,17 +85,14 @@ def decodificar_firma_io(cadena_b64):
 # ==============================================================================
 st.markdown("""
     <style>
-    /* --- RESET DE COLOR: BLANCO Y NEGRO --- */
     :root { color-scheme: light !important; }
     html, body, [data-testid="stAppViewContainer"], .stApp {
         background-color: #FFFFFF !important;
         color: #000000 !important;
     }
     
-    /* --- HIDE DEFAULT UI --- */
     header, [data-testid="stHeader"] { display: none !important; }
     
-    /* --- FIX LUPA: FUENTES RESPONSIVAS --- */
     label p { 
         font-size: clamp(0.8rem, 2.5vw, 0.95rem) !important; 
         color: #0D47A1 !important; 
@@ -105,7 +100,6 @@ st.markdown("""
         line-height: 1.2 !important;
     }
 
-    /* --- FIX DESPLEGABLES Y CUADROS: ELIMINACIÓN DE NEGROS --- */
     div[data-baseweb="select"] *, input, textarea, [data-testid="stNumberInputContainer"] * {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
@@ -119,33 +113,12 @@ st.markdown("""
         border-radius: 8px !important;
     }
 
-    /* --- BOTONERA SUPERIOR CON NOMBRES --- */
-    .nav-button-container {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        gap: 5px;
-        margin-bottom: 20px;
-    }
-    
-    .nav-label {
-        font-size: 0.65rem !important;
-        font-weight: 950 !important;
-        color: #0D47A1 !important;
-        text-transform: uppercase;
-        text-align: center;
-        margin-top: -10px;
-        margin-bottom: 10px;
-    }
-
-    /* --- RESPONSIVIDAD MÓVIL --- */
     @media screen and (max-width: 768px) {
         .header-master img { height: 70px !important; }
         .header-master h1 { font-size: 1.1rem !important; }
         .main .block-container { padding-bottom: 180px !important; padding-top: 5px !important; }
     }
 
-    /* --- MARQUESINA --- */
     .marquee-wrapper {
         width: 100%; overflow: hidden; background: #F0FDF4; border: 2px solid #22C55E;
         border-radius: 10px; padding: 12px 0; margin: 15px 0;
@@ -156,7 +129,6 @@ st.markdown("""
     }
     @keyframes scroll-ls { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
-    /* --- BOTONES DE ACCIÓN --- */
     .stButton > button {
         background-color: #0D47A1 !important; color: #FFFFFF !important;
         font-weight: 950 !important; border-radius: 8px !important;
@@ -166,7 +138,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ==============================================================================
-# 4. MOTOR DE BASE DE DATOS MUNICIPAL (SOPORTE 800 LÍNEAS)
+# 4. MOTOR DE BASE DE DATOS MUNICIPAL 
 # ==============================================================================
 def inicializar_bd_la_serena():
     conexion = sqlite3.connect('workflow_honorarios_master.db', check_same_thread=False)
@@ -189,7 +161,7 @@ def inicializar_bd_la_serena():
 conn_muni_db = inicializar_bd_la_serena()
 
 # ==============================================================================
-# 5. ORGANIGRAMA MASIVO (IDENTIDAD IMLS)
+# 5. ORGANIGRAMA MASIVO
 # ==============================================================================
 listado_direcciones_ls = [
     "Alcaldía", "Administración Municipal", "Secretaría Municipal", "DIDECO", "DOM", 
@@ -216,14 +188,13 @@ listado_departamentos_ls = [
 # ==============================================================================
 # 6. MOTOR DE DOCUMENTOS (PDF CON LÓGICA DE JORNADA)
 # ==============================================================================
-def generar_pdf_muni_robusto(ctx, img_pres_io):
+def generar_pdf_muni_robusto(ctx, img_pres_io, img_jefa_io=None):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", "B", 16)
     pdf.cell(0, 15, "INFORME DE ACTIVIDADES - I. MUNICIPALIDAD DE LA SERENA", ln=1, align='C')
     pdf.ln(5)
     
-    # Identificación
     pdf.set_font("Arial", "B", 11)
     pdf.set_fill_color(245, 245, 245)
     pdf.cell(0, 8, " I. ANTECEDENTES GENERALES", ln=1, fill=True)
@@ -232,7 +203,6 @@ def generar_pdf_muni_robusto(ctx, img_pres_io):
     pdf.cell(0, 7, f" Unidad: {ctx['direccion']} | Jornada: {ctx['jornada']}", ln=1)
     pdf.cell(0, 7, f" Periodo: {ctx['mes']} de {ctx['anio']}", ln=1)
     
-    # Asistencia Condicional
     if ctx['jornada'] != "Libre / Por Productos":
         pdf.ln(3)
         pdf.set_font("Arial", "B", 11)
@@ -243,7 +213,6 @@ def generar_pdf_muni_robusto(ctx, img_pres_io):
         pdf.cell(47, 8, f" Atrasos: {ctx['h_atraso']}", border=1)
         pdf.cell(47, 8, f" Incump.: {ctx['h_incum']}", border=1, ln=1)
 
-    # Actividades
     pdf.ln(3)
     pdf.set_font("Arial", "B", 11)
     pdf.cell(0, 8, " III. GESTIÓN DESARROLLADA", ln=1, fill=True)
@@ -251,13 +220,50 @@ def generar_pdf_muni_robusto(ctx, img_pres_io):
     for a in ctx['actividades']:
         pdf.multi_cell(0, 6, f" ● {a['Actividad']} -> {a['Producto']}", border=0)
     
+    y_actual = pdf.get_y() + 10
+    if y_actual > 230: pdf.add_page(); y_actual = 20
+
     if img_pres_io:
-        pdf.image(img_pres_io, x=75, y=pdf.get_y()+10, w=60)
+        pdf.image(img_pres_io, x=30, y=y_actual, w=50)
+        pdf.text(x=35, y=y_actual + 25, txt="Firma del Prestador")
+    
+    if img_jefa_io:
+        pdf.image(img_jefa_io, x=120, y=y_actual, w=50)
+        pdf.text(x=125, y=y_actual + 25, txt="V°B° Jefatura Directa")
+        
     return bytes(pdf.output())
 
 # ==============================================================================
-# 7. PORTAL DEL PRESTADOR (FORMULARIO CON BLINDAJE LÓGICO)
+# 7. MÓDULOS DE APLICACIÓN
 # ==============================================================================
+
+# --- VALIDACIÓN DE ACCESO ---
+def validar_acceso_portal(rol_esperado, user_ok, pass_ok):
+    if st.session_state.get(f'auth_{rol_esperado}'): 
+        return True
+    
+    st.markdown(f"<h3 style='color:#0D47A1; text-align:center;'>🔐 Portal {rol_esperado.capitalize()}</h3>", unsafe_allow_html=True)
+    st.info("Ingrese credenciales para acceder al panel de administración.")
+    
+    with st.container(border=True):
+        c1, c2 = st.columns(2)
+        u_in = c1.text_input("Usuario", key=f"u_{rol_esperado}")
+        p_in = c2.text_input("Contraseña", type="password", key=f"p_{rol_esperado}")
+        
+        if st.button("🚪 INGRESAR", type="primary", key=f"btn_{rol_esperado}", use_container_width=True):
+            if u_in == user_ok and p_in == pass_ok:
+                st.session_state[f'auth_{rol_esperado}'] = True
+                st.rerun()
+            else:
+                st.error("❌ Credenciales incorrectas.")
+    return False
+
+def boton_salir(rol):
+    if st.button("🔒 CERRAR SESIÓN", key=f"out_{rol}"):
+        st.session_state[f'auth_{rol}'] = False
+        st.rerun()
+
+# --- PORTAL 1: PRESTADOR ---
 def modulo_portal_prestador():
     if 'envio_ok_ls' not in st.session_state: st.session_state.envio_ok_ls = None
 
@@ -278,7 +284,6 @@ def modulo_portal_prestador():
             sel_jornada = st.selectbox("Tipo de Jornada", ["Completa", "Media Jornada", "Libre / Por Productos"])
             
             st.markdown("---")
-            # --- ASISTENCIA CONDICIONAL: SI ES LIBRE SE ANULA ---
             is_libre = (sel_jornada == "Libre / Por Productos")
             ca1, ca2, ca3, ca4, ca5, ca6 = st.columns(6)
             d_totales = ca1.number_input("Días Mes", value=30, disabled=is_libre)
@@ -327,7 +332,7 @@ def modulo_portal_prestador():
                 doc = DocxTemplate("plantilla_base.docx")
                 doc.render({**ctx, 'firma': InlineImage(doc, decodificar_firma_io(f_b64), height=Mm(22))})
                 buf_w = io.BytesIO(); doc.save(buf_w)
-                buf_p = generar_pdf_muni_robusto(ctx, decodificar_firma_io(f_b64))
+                buf_p = generar_pdf_muni_robusto(ctx, decodificar_firma_io(f_b64), None)
                 
                 st.session_state.envio_ok_ls = {"word": buf_w.getvalue(), "pdf": buf_p, "name": f"Informe_{tx_ap_paterno}_{sel_mes}"}
                 st.rerun()
@@ -335,7 +340,90 @@ def modulo_portal_prestador():
         st.success("🎉 ¡Misión Lograda! Informe enviado con éxito.")
         st.download_button("📥 BAJAR COPIA WORD", st.session_state.envio_ok_ls['word'], f"{st.session_state.envio_ok_ls['name']}.docx", use_container_width=True)
         st.download_button("📥 BAJAR COPIA PDF", st.session_state.envio_ok_ls['pdf'], f"{st.session_state.envio_ok_ls['name']}.pdf", use_container_width=True)
-        if st.button("⬅️ VOLVER"): st.session_state.envio_ok_ls = None; st.rerun()
+        if st.button("⬅️ VOLVER AL INICIO"): st.session_state.envio_ok_ls = None; st.rerun()
+
+# --- MÓDULO 2: JEFATURA ---
+def modulo_portal_jefatura():
+    if not validar_acceso_portal("jefatura", "jefatura", "123"): return
+    st.markdown("<h3 style='color:#0D47A1;'>📥 Bandeja de Entrada - Visación Técnica</h3>", unsafe_allow_html=True)
+    
+    df_p = pd.read_sql_query("SELECT id, nombres, apellido_p, rut, depto, mes, estado FROM informes WHERE estado='🔴 Pendiente'", conn_muni_db)
+    
+    if df_p.empty: 
+        st.success("🎉 No hay informes pendientes por revisar.")
+    else:
+        st.dataframe(df_p, use_container_width=True, hide_index=True)
+        id_sel = st.selectbox("Seleccione el ID del informe a procesar:", df_p['id'].tolist())
+        
+        cur = conn_muni_db.cursor()
+        cur.execute("SELECT * FROM informes WHERE id=?", (id_sel,))
+        row = dict(zip([c[0] for c in cur.description], cur.fetchone()))
+        
+        st.info(f"**Revisando Informe de:** {row['nombres']} {row['apellido_p']} | **Mes:** {row['mes']}")
+        with st.expander("Ver Detalle de Actividades", expanded=True):
+            acts = json.loads(row['actividades_json'])
+            for a in acts: st.write(f"✅ **{a['Actividad']}** \n ↳ *{a['Producto']}*")
+                
+        st.write("✍️ **Firma Digital de Visación (Jefatura)**")
+        canvas_j = st_canvas(stroke_width=3, stroke_color="blue", background_color="white", height=150, width=400, key="canv_j")
+        
+        ca, cr = st.columns(2)
+        if ca.button("✅ APROBAR", type="primary", use_container_width=True):
+            if canvas_j.json_data is None or len(canvas_j.json_data["objects"]) == 0: 
+                st.error("⚠️ Firme para autorizar.")
+            else:
+                f_j_b64 = codificar_firma_b64(canvas_j.image_data)
+                cur.execute("UPDATE informes SET estado='🟡 Visado Jefatura', firma_jefatura_b64=? WHERE id=?", (f_j_b64, id_sel))
+                conn_muni_db.commit()
+                st.success("✅ Informe Visado."); time.sleep(1); st.rerun()
+                
+        if cr.button("❌ RECHAZAR", use_container_width=True):
+            cur.execute("UPDATE informes SET estado='❌ Rechazado' WHERE id=?", (id_sel,))
+            conn_muni_db.commit()
+            st.rerun()
+    boton_salir("jefatura")
+
+# --- MÓDULO 3: FINANZAS ---
+def modulo_portal_finanzas():
+    if not validar_acceso_portal("finanzas", "finanzas", "123"): return
+    st.markdown("<h3 style='color:#0D47A1;'>🏛️ Módulo de Pagos</h3>", unsafe_allow_html=True)
+    
+    df_f = pd.read_sql_query("SELECT id, nombres, apellido_p, rut, mes, monto, estado FROM informes WHERE estado='🟡 Visado Jefatura'", conn_muni_db)
+    
+    if df_f.empty: 
+        st.success("✅ Bandeja limpia.")
+    else:
+        st.dataframe(df_f, use_container_width=True, hide_index=True)
+        id_p = st.selectbox("ID para liberar pago:", df_f['id'].tolist())
+        
+        cur = conn_muni_db.cursor()
+        cur.execute("SELECT monto, n_boleta FROM informes WHERE id=?", (id_p,))
+        res = cur.fetchone()
+        
+        st.info(f"**Nº Boleta:** {res[1]} | **Bruto:** ${res[0]:,.0f}")
+        liq = int(res[0] * 0.8475)
+        st.metric("Líquido a Transferir (Retención 15.25%)", f"${liq:,.0f}")
+        
+        if st.button("💸 CONFIRMAR PAGO", type="primary", use_container_width=True):
+            cur.execute("UPDATE informes SET estado='🟢 Pago Liberado' WHERE id=?", (id_p,))
+            conn_muni_db.commit()
+            st.success("💸 Pago procesado."); time.sleep(1); st.rerun()
+    boton_salir("finanzas")
+
+# --- MÓDULO 4: HISTORIAL ---
+def modulo_historial_auditoria():
+    if not validar_acceso_portal("historial", "finanzas", "123"): return
+    st.markdown("<h3 style='color:#0D47A1;'>📊 Consolidado Histórico</h3>", unsafe_allow_html=True)
+    
+    df_h = pd.read_sql_query("SELECT id, nombres, apellido_p, rut, depto, mes, estado, fecha_envio FROM informes ORDER BY id DESC", conn_muni_db)
+    
+    if df_h.empty: 
+        st.info("Base de datos vacía.")
+    else:
+        st.dataframe(df_h, use_container_width=True, hide_index=True)
+        csv_data = df_h.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📊 EXPORTAR A CSV", csv_data, "Auditoria_Honorarios.csv", mime='text/csv', use_container_width=True)
+    boton_salir("historial")
 
 # ==============================================================================
 # 8. CABECERA MAESTRA (DOBLE LOGO + MARQUEE)
@@ -369,22 +457,23 @@ renderizar_cabecera_ls2026()
 
 if 'menu_activo' not in st.session_state: st.session_state.menu_activo = "👤 Portal Prestador"
 
-# --- NAVEGACIÓN SUPERIOR INTEGRAL ---
 c_n1, c_n2, c_n3, c_n4 = st.columns(4)
 with c_n1:
     if st.button("👤 PRESTADOR", key="nav_m_1", use_container_width=True): st.session_state.menu_activo = "👤 Portal Prestador"; st.rerun()
 with c_n2:
-    if st.button("🧑‍💼 JEFATURA", key="nav_m_2", use_container_width=True): st.session_state.menu_activo = "🧑‍💼 Portal Jefatura 🔒"; st.rerun()
+    if st.button("🧑‍💼 JEFATURA", key="nav_m_2", use_container_width=True): st.session_state.menu_activo = "🧑‍💼 Portal Jefatura"; st.rerun()
 with c_n3:
-    if st.button("🏛️ FINANZAS", key="nav_m_3", use_container_width=True): st.session_state.menu_activo = "🏛️ Portal Finanzas 🔒"; st.rerun()
+    if st.button("🏛️ FINANZAS", key="nav_m_3", use_container_width=True): st.session_state.menu_activo = "🏛️ Portal Finanzas"; st.rerun()
 with c_n4:
-    if st.button("📊 HISTORIAL", key="nav_m_4", use_container_width=True): st.session_state.menu_activo = "📊 Consolidado Histórico 🔒"; st.rerun()
+    if st.button("📊 HISTORIAL", key="nav_m_4", use_container_width=True): st.session_state.menu_activo = "📊 Consolidado Histórico"; st.rerun()
 
 st.markdown("---")
 
-if st.session_state.menu_activo == "👤 Portal Prestador": modulo_portal_prestador()
-elif st.session_state.menu_activo == "🧑‍💼 Portal Jefatura 🔒": st.info("🔐 Bandeja Técnica restringida.")
-elif st.session_state.menu_activo == "🏛️ Portal Finanzas 🔒": st.info("🔐 Módulo Finanzas restringido.")
-else: st.info("📊 Consolidado Histórico.")
-
-# FINAL DEL ARCHIVO MAESTRO - SISTEMA HONORARIOS IMLS v48.9 "ACORAZADO VISUAL AAA"
+if st.session_state.menu_activo == "👤 Portal Prestador": 
+    modulo_portal_prestador()
+elif st.session_state.menu_activo == "🧑‍💼 Portal Jefatura": 
+    modulo_portal_jefatura()
+elif st.session_state.menu_activo == "🏛️ Portal Finanzas": 
+    modulo_portal_finanzas()
+else: 
+    modulo_historial_auditoria()
