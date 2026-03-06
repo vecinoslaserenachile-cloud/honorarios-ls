@@ -662,4 +662,11 @@ with st.sidebar:
     st.markdown("---")
     st.caption("v48.1 Master Tanque | La Serena Digital")
 
+# --- DISPARADOR DE LÓGICA ---
+if st.session_state.menu_activo == "👤 Portal Prestador": modulo_portal_prestador()
+elif st.session_state.menu_activo == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura()
+elif st.session_state.menu_activo == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas()
+else: modulo_historial_auditoria()
+    
+
 # Final del Archivo Maestro: Estabilidad, UX Móvil Fluida y Tipografía Blindadas.
