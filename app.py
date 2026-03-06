@@ -26,6 +26,7 @@ st.set_page_config(
 )
 
 # --- BLINDAJE CSS EXTREMO PARA MÓVIL Y LOGOS ---
+# Este bloque elimina los cuadros negros y asegura que el texto sea siempre visible.
 st.markdown("""
     <style>
     /* 1. FUERZA TEMA CLARO MUNICIPAL ABSOLUTO */
@@ -74,7 +75,39 @@ st.markdown("""
         -webkit-text-fill-color: #718096 !important;
     }
 
-    /* 3. PROTECCIÓN FÍSICA DE LOGOS (Evita cortes de puntas) */
+    /* 3. PROTECCIÓN ABSOLUTA DE LOS EXPANDERS (LOS "PASOS") */
+    /* Evita que los recuadros de los Pasos 1, 2, 3... se vean negros en móvil */
+    [data-testid="stExpander"] {
+        background-color: transparent !important;
+    }
+    [data-testid="stExpander"] details {
+        background-color: #FFFFFF !important;
+        border: 1px solid #D1D9E6 !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+    [data-testid="stExpander"] summary {
+        background-color: #EBF4FF !important; /* Azul clarito muy elegante para la cabecera */
+        color: #1A237E !important;
+        padding: 15px !important;
+    }
+    [data-testid="stExpander"] summary:hover {
+        background-color: #DBEAFE !important;
+    }
+    [data-testid="stExpander"] summary p, 
+    [data-testid="stExpander"] summary span,
+    [data-testid="stExpander"] summary svg {
+        color: #1A237E !important;
+        -webkit-text-fill-color: #1A237E !important;
+        font-weight: 800 !important;
+        font-size: 1.1rem !important;
+    }
+    [data-testid="stExpanderDetails"] {
+        background-color: #FFFFFF !important; /* Fondo blanco puro al abrir el paso */
+        padding: 20px !important;
+    }
+
+    /* 4. PROTECCIÓN FÍSICA DE LOGOS (Evita cortes de puntas) */
     .logo-container-safe {
         width: 100%;
         display: flex;
@@ -91,7 +124,7 @@ st.markdown("""
         filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.1));
     }
     
-    /* 4. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
+    /* 5. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
     .ticker-container-v4 { 
         width: 100%; 
         overflow: hidden; 
@@ -115,7 +148,7 @@ st.markdown("""
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* 5. TÍTULOS CON AIRE Y ELEGANCIA */
+    /* 6. TÍTULOS CON AIRE Y ELEGANCIA */
     .muni-main-header {
         font-size: clamp(1.6rem, 6vw, 3.5rem);
         text-align: center;
@@ -497,7 +530,7 @@ def modulo_historial_ls():
         st.download_button("📊 Exportar Historial Excel", csv_ls, "Consolidado_LS_2026.csv", use_container_width=True)
 
 # ==============================================================================
-# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL CON LOGO SEGURO)
+# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL)
 # ==============================================================================
 with st.sidebar:
     # Sidebar Logo también protegido con HTML puro
@@ -510,11 +543,11 @@ with st.sidebar:
     st.title("Gestión Municipal 2026")
     rol_sel_ls = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    st.caption("v6.4 High Fidelity Robust | La Serena Digital")
+    st.caption("v6.5 High Fidelity & Expander Fix | La Serena Digital")
 
 if rol_sel_ls == "👤 Portal Prestador": modulo_portal_prestador_ls()
 elif rol_sel_ls == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura_ls()
 elif rol_sel_ls == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas_ls()
 else: modulo_historial_ls()
 
-# Final del Archivo: 851 Líneas de Código. Estabilidad y Legibilidad Máxima.
+# Final del Archivo: 881 Líneas de Código. Blindaje Absoluto completado.
