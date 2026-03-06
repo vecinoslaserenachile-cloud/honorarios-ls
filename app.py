@@ -30,7 +30,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V23.0 (NAVEGACIÓN Y VISUALIZACIÓN)
+# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V24.0 (NAVEGACIÓN Y VISUALIZACIÓN)
 # ==============================================================================
 # Este bloque garantiza la navegación móvil, elimina el doble borde y fija la tipografía.
 st.markdown("""
@@ -69,7 +69,7 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* --- 3. RESCATE MÓVIL: MENÚ DE LÍNEAS (PESTAÑAS) INMUNE --- */
+    /* --- 3. RESCATE MÓVIL: BOTÓN DE MENÚ (PESTAÑAS) INMUNE --- */
     /* Este botón circular permite abrir las pestañas laterales que se perdían en celulares */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
@@ -79,8 +79,8 @@ st.markdown("""
         background-color: #0D47A1 !important; 
         border-radius: 50% !important; /* Estilo circular flotante de alto impacto */
         margin: 10px !important;
-        width: 58px !important; 
-        height: 58px !important;
+        width: 60px !important; 
+        height: 60px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -124,7 +124,7 @@ st.markdown("""
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC !important;
         border-right: 4px solid #0D47A1 !important;
-        min-width: 350px !important;
+        min-width: 340px !important;
     }
     /* Forzamos el color oscuro para evitar el texto invisible sobre fondo claro */
     section[data-testid="stSidebar"] * {
@@ -233,7 +233,7 @@ def get_image_base64(path, default_url):
     return default_url
 
 def codificar_firma_b64(datos_canvas):
-    """Procesa el lienzo de firma digital y garantiza fondo blanco nítido para documentos"""
+    """Procesa el lienzo de firma digital y garantiza fondo blanco nítido para PDF/Word"""
     try:
         img_rgba = Image.fromarray(datos_canvas.astype('uint8'), 'RGBA')
         fondo_blanco = Image.new("RGB", img_rgba.size, (255, 255, 255))
@@ -246,7 +246,7 @@ def codificar_firma_b64(datos_canvas):
         return ""
 
 def decodificar_firma_io(cadena_b64):
-    """Prepara la firma almacenada para ser inyectada en documentos Word y PDF"""
+    """Prepara la firma almacenada para ser inyectada en documentos oficiales"""
     if not cadena_b64: return None
     try:
         return io.BytesIO(base64.b64decode(cadena_b64))
@@ -335,9 +335,10 @@ listado_departamentos_ls = [
     "Administración Municipal", "Adquisiciones e Inventario", "Alumbrado Público",
     "Archivo Municipal", "Asesoría Jurídica", "Asesoría Urbana", "Asistencia Social",
     "Auditoría Interna", "Bienestar de Personal", "Cámaras de Seguridad (CCTV)",
-    "Capacitación", "Catastro", "Cementerio Municipal", "Centro de Tenencia Responsable",
-    "Clínica Veterinaria Municipal", "Comunicaciones y Prensa", "Contabilidad y Presupuesto",
-    "Control de Gestión", "Cultura y Extensión", "Deportes y Recreación", "Discapacidad",
+    "Capacitación", "Catastro y Edificación", "Cementerio Municipal",
+    "Centro de Tenencia Responsable", "Clínica Veterinaria Municipal",
+    "Comunicaciones y Prensa", "Contabilidad y Presupuesto", "Control de Gestión",
+    "Cultura y Extensión", "Deportes y Recreación", "Discapacidad e Inclusión",
     "Diversidad y No Discriminación", "Emergencias y Protección Civil",
     "Estratificación Social (Registro Social de Hogares)", "Eventos",
     "Finanzas", "Fomento Productivo / Emprendimiento", "Formulación de Proyectos",
@@ -427,7 +428,7 @@ def validar_acceso_portal(id_portal):
     p_in = col_p.text_input("Contraseña", type="password", key=f"p_{id_portal}")
     
     if st.button("Verificar Identidad", type="primary", key=f"btn_{id_portal}"):
-        # Credenciales maestras configuradas para el backoffice
+        # Credenciales maestras configuradas para el backoffice municipal
         if (id_portal == "jefatura" and u_in == "jefatura" and p_in == "123") or \
            (id_portal == "finanzas" and u_in == "finanzas" and p_in == "123") or \
            (id_portal == "historial" and u_in == "finanzas" and p_in == "123"):
@@ -452,7 +453,7 @@ def renderizar_cabecera_ls2026():
     html_header = (
         "<div style='display: flex; flex-direction: row; justify-content: space-between; align-items: center; flex-wrap: wrap; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 20px; border-bottom: 4px solid #0D47A1;'>"
         "<div style='flex: 1; min-width: 110px; text-align: center;'>"
-        f"<img src='{b64_muni}' style='width: 100%; max-width: 135px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
+        f"<img src='{b64_muni}' style='width: 100%; max-width: 130px; object-fit: contain; image-rendering: -webkit-optimize-contrast;'>"
         "</div>"
         "<div style='flex: 3; min-width: 300px; text-align: center; padding: 10px;'>"
         "<h1 style='color: #0D47A1; margin: 0; font-size: clamp(22px, 4.5vw, 36px); font-weight: 950;'>Ilustre Municipalidad de La&nbsp;Serena</h1>"
@@ -554,7 +555,7 @@ def modulo_portal_prestador():
 
         st.markdown("<hr>", unsafe_allow_html=True)
         if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN TÉCNICA", type="primary", use_container_width=True):
-            # VALIDACIÓN ESTRICTA DE CAMPOS
+            # VALIDACIÓN ESTRICTA DE CAMPOS OBLIGATORIOS
             if not tx_nombres or not tx_ap_paterno or not tx_rut or num_bruto == 0 or canvas_firma.image_data is None:
                 st.error("⚠️ Error: Faltan datos obligatorios. Verifique RUT, Nombres, Apellidos, Monto o Firma.")
             else:
@@ -685,7 +686,7 @@ def modulo_portal_finanzas():
     renderizar_cabecera_ls2026()
     if not validar_acceso_portal("finanzas"): return
     
-    st.subheader("🏛️ Panel de Tesorería y Pagos")
+    st.subheader("🏛️ Panel de Pagos y Tesorería")
     st.write("Listado de informes con Visación Técnica listos para el pago de honorarios.")
     
     df_f = pd.read_sql_query("SELECT id, nombres, apellido_p, mes, monto, estado FROM informes WHERE estado='🟡 Visado Jefatura'", conn_muni_db)
@@ -781,7 +782,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v23.0 Master Build Inclusivo | La&nbsp;Serena Digital")
+    st.caption("v24.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
 
 # Disparador de Lógica por Módulos
 if seleccion_menu == "👤 Portal Prestador": 
