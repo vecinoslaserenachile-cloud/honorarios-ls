@@ -16,7 +16,7 @@ from docx.shared import Mm
 from fpdf import FPDF
 
 # ==============================================================================
-# 1. CONFIGURACIÓN ESTRATÉGICA Y BLINDAJE VISUAL (LEGIBILIDAD TOTAL)
+# 1. CONFIGURACIÓN ESTRATÉGICA Y BLINDAJE VISUAL DEFINITIVO (MÓVIL Y LOGOS)
 # ==============================================================================
 st.set_page_config(
     page_title="Sistema Honorarios La Serena 2026", 
@@ -25,103 +25,113 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- BLINDAJE CSS PARA MÓVIL Y NITIDEZ DE LOGOS ---
-# Este bloque elimina los cuadros negros y asegura que el texto sea siempre visible.
+# --- BLINDAJE CSS EXTREMO PARA MÓVIL Y LOGOS ---
 st.markdown("""
     <style>
-    /* 1. FUERZA TEMA CLARO ABSOLUTO: Bloquea fondos negros en iOS/Android */
+    /* 1. FUERZA TEMA CLARO MUNICIPAL ABSOLUTO */
     .stApp {
         background-color: #FFFFFF !important;
         color: #0A192F !important;
     }
     
-    /* 2. ELIMINACIÓN DE CUADROS NEGROS EN FORMULARIOS Y INPUTS */
-    /* Target específico a los contenedores que se oscurecen en móvil */
-    div[data-baseweb="input"], 
-    div[data-baseweb="select"], 
-    div[data-baseweb="textarea"], 
-    .stSelectbox, 
-    .stNumberInput, 
-    .stTextInput,
-    .stDateInput {
-        background-color: #FFFFFF !important;
-        border: 2px solid #E1E8F0 !important;
-        border-radius: 12px !important;
-        padding: 2px !important;
+    /* 2. SOLUCIÓN RADICAL A CUADROS NEGROS EN MÓVIL (Efecto Nublado Legible) */
+    /* Apuntamos a todos los niveles del DOM de Streamlit y BaseWeb */
+    [data-baseweb="input"], 
+    [data-baseweb="select"], 
+    [data-baseweb="textarea"],
+    [data-baseweb="base-input"],
+    .stSelectbox div, 
+    .stNumberInput div, 
+    .stTextInput div,
+    .stTextArea div {
+        background-color: transparent !important; /* Hacemos transparente los wrappers... */
     }
     
-    /* 3. CONTRASTE DE TEXTO Y LABELS: Evita el mimetismo */
-    input, select, textarea, label, span, p, div, h1, h2, h3, .stMarkdown {
-        color: #0A192F !important; /* Azul Marino Profundo Institucional */
-        -webkit-text-fill-color: #0A192F !important;
+    /* ...Y le damos el color directamente al elemento nativo HTML */
+    input, select, textarea {
+        background-color: #F4F6F9 !important; /* Gris claro nublado, elegante y legible */
+        color: #0A192F !important; /* Azul marino profundo */
+        -webkit-text-fill-color: #0A192F !important; /* Fuerza el color en iOS/Safari */
+        border: 2px solid #D1D9E6 !important;
+        border-radius: 10px !important;
+        padding: 10px !important;
         font-weight: 600 !important;
-        line-height: 1.6 !important; /* Textos menos apretados */
+        line-height: 1.5 !important;
+        opacity: 1 !important;
     }
     
-    /* Visibilidad de placeholders para guiar al usuario */
-    ::placeholder { color: #718096 !important; opacity: 1 !important; }
+    /* Al tocar el cuadro (focus), se vuelve blanco iluminado */
+    input:focus, select:focus, textarea:focus {
+        background-color: #FFFFFF !important;
+        border-color: #1E88E5 !important;
+        box-shadow: 0 0 5px rgba(30,136,229,0.5) !important;
+    }
 
-    /* 4. NITIDEZ DE LOGOS: Padding sagrado para no cortar puntas */
-    .logo-container-pro {
-        padding: 25px;
-        background-color: #FFFFFF;
+    /* Visibilidad absoluta de placeholders */
+    ::placeholder { 
+        color: #718096 !important; 
+        opacity: 1 !important; 
+        -webkit-text-fill-color: #718096 !important;
+    }
+
+    /* 3. PROTECCIÓN FÍSICA DE LOGOS (Evita cortes de puntas) */
+    .logo-container-safe {
+        width: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
-        border-radius: 20px;
-        margin: 10px;
+        padding: 15px; /* Espacio sagrado anti-cortes */
     }
-    
-    .logo-high-nitidity {
-        image-rendering: -webkit-optimize-contrast !important; 
-        image-rendering: crisp-edges !important;
-        image-rendering: pixelated !important;
+    .logo-container-safe img {
         max-width: 100%;
-        height: auto;
-        filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.1));
+        max-height: 140px;
+        object-fit: contain !important; /* Prohíbe el recorte o estiramiento */
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.1));
     }
     
-    /* 5. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
-    .ticker-container-v3 { 
+    /* 4. TICKER DINÁMICO DE IMPACTO MUNICIPAL 2026 */
+    .ticker-container-v4 { 
         width: 100%; 
         overflow: hidden; 
         background-color: #F0FDF4; 
         color: #166534; 
         border: 2px solid #BBF7D0; 
-        padding: 15px 0; 
-        border-radius: 20px; 
-        margin-bottom: 40px; 
-        box-shadow: 0 4px 25px rgba(0,0,0,0.05); 
+        padding: 14px 0; 
+        border-radius: 18px; 
+        margin-bottom: 35px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
     }
     .ticker-scrolling-text { 
         display: inline-block; 
         white-space: nowrap; 
-        animation: ticker-animation-v3 65s linear infinite; 
-        font-size: clamp(16px, 4.5vw, 22px); 
+        animation: ticker-animation-v4 65s linear infinite; 
+        font-size: clamp(15px, 4vw, 21px); 
         font-weight: 800;
     }
-    @keyframes ticker-animation-v3 { 
+    @keyframes ticker-animation-v4 { 
         0% { transform: translate3d(100%, 0, 0); } 
         100% { transform: translate3d(-100%, 0, 0); } 
     }
     
-    /* 6. TÍTULOS CON AIRE Y ELEGANCIA */
+    /* 5. TÍTULOS CON AIRE Y ELEGANCIA */
     .muni-main-header {
-        font-size: clamp(1.8rem, 7vw, 4rem);
+        font-size: clamp(1.6rem, 6vw, 3.5rem);
         text-align: center;
         color: #1A237E;
         font-weight: 900;
-        margin-bottom: 8px;
-        letter-spacing: -2px;
+        margin-bottom: 5px;
+        letter-spacing: -1.5px;
         line-height: 1.1;
     }
     .muni-sub-header {
-        font-size: clamp(1.1rem, 4vw, 2rem);
+        font-size: clamp(1rem, 3.5vw, 1.8rem);
         text-align: center;
         color: #1E88E5;
         font-weight: 700;
         margin-top: 0;
-        margin-bottom: 35px;
+        margin-bottom: 30px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -272,20 +282,25 @@ def acceso_portal_ls(id_portal):
     return False
 
 # ==============================================================================
-# 4. CABECERA MAESTRA (LOGO INNOVACIÓN NÍTIDO Y IMPACTO CIUDADANO)
+# 4. CABECERA MAESTRA (HTML PURO PARA EVITAR CORTES EN LOGOS)
 # ==============================================================================
 def renderizar_cabecera_ls2026():
-    """Dibuja logos con nitidez máxima y el ticker dinámico de ahorro anual"""
+    """Dibuja logos inyectando HTML puro para asegurar object-fit: contain"""
     col_l1, col_center, col_l2 = st.columns([1.5, 5, 1.5], gap="small")
     
     with col_l1:
-        st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
-        # Escudo Municipal de La Serena conPadding de Seguridad
+        # LOGO MUNICIPAL BLINDADO
         if os.path.exists("logo_muni.png"): 
-            st.image("logo_muni.png", width=140)
+            img_muni_b64 = base64.b64encode(open("logo_muni.png", "rb").read()).decode()
+            img_src = f"data:image/png;base64,{img_muni_b64}"
         else: 
-            st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=110)
-        st.markdown('</div>', unsafe_allow_html=True)
+            img_src = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png"
+        
+        st.markdown(f'''
+            <div class="logo-container-safe">
+                <img src="{img_src}" alt="Logo Municipal">
+            </div>
+        ''', unsafe_allow_html=True)
             
     with col_center:
         st.markdown("<p class='muni-main-header'>Ilustre Municipalidad de La Serena</p>", unsafe_allow_html=True)
@@ -293,7 +308,7 @@ def renderizar_cabecera_ls2026():
         
         # Ticker de Impacto masivo anual proyectado para los 1.800 funcionarios
         st.markdown("""
-            <div class="ticker-container-v3">
+            <div class="ticker-container-v4">
                 <div class="ticker-scrolling-text">
                     ☀️ ¡GRACIAS POR SER PARTE DEL CAMBIO! 🌊 ● 🌳 <b>IMPACTO ANUAL PROYECTADO:</b> Estamos ahorrando juntos <b>$78.580.800 CLP</b> en costos operativos ● 📄 ¡Evitamos imprimir <b>108.000 hojas de papel</b> al año! ● 🕒 Ganamos <b>14.400 horas</b> de tiempo real ● ☀️ Menos tinta, menos energía ● 🐑 ¡Cuidamos nuestra huella de carbono! ☁️ ● ✨ Innovación Ciudadana: ¡Cambiando papel por sol y progreso! 🌿🟢🔵🌕● 
                 </div>
@@ -301,15 +316,18 @@ def renderizar_cabecera_ls2026():
         """, unsafe_allow_html=True)
         
     with col_l2:
-        st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
-        # Sello de Innovación Municipal con Renderizado de Alta Nitidez
+        # LOGO INNOVACIÓN BLINDADO
         if os.path.exists("logo_innovacion.png"): 
-            # Inyección directa por Base64 para máxima fidelidad visual
-            img_b64 = base64.b64encode(open("logo_innovacion.png", "rb").read()).decode()
-            st.markdown(f'<img src="data:image/png;base64,{img_b64}" class="logo-high-nitidity" width="160">', unsafe_allow_html=True)
+            img_inno_b64 = base64.b64encode(open("logo_innovacion.png", "rb").read()).decode()
+            img_inno_src = f"data:image/png;base64,{img_inno_b64}"
         else: 
-            st.image("https://cdn-icons-png.flaticon.com/512/1903/1903162.png", width=130)
-        st.markdown('</div>', unsafe_allow_html=True)
+            img_inno_src = "https://cdn-icons-png.flaticon.com/512/1903/1903162.png"
+            
+        st.markdown(f'''
+            <div class="logo-container-safe">
+                <img src="{img_inno_src}" alt="Logo Innovacion">
+            </div>
+        ''', unsafe_allow_html=True)
 
 def disparar_globos_ls():
     """Lanza globos y muestra el mensaje de impacto ecológico positivo masivo"""
@@ -366,8 +384,8 @@ def modulo_portal_prestador_ls():
         
         for idx in range(st.session_state.acts_ls):
             ca_a, ca_b = st.columns(2)
-            ca_a.text_area(f"Actividad Realizada {idx+1}", key=f"a_d_ls_{idx}", placeholder="Ej: Redacción de informes...")
-            ca_b.text_area(f"Resultado {idx+1}", key=f"a_r_ls_{idx}", placeholder="Ej: 5 Documentos firmados...")
+            ca_a.text_area(f"Actividad Realizada {idx+1}", key=f"a_d_ls_{idx}", placeholder="Ej: Redacción de informes técnicos y atención de público...")
+            ca_b.text_area(f"Resultado {idx+1}", key=f"a_r_ls_{idx}", placeholder="Ej: 5 Documentos entregados y firmados...")
         
         if st.button("➕ Añadir Otra Actividad"): 
             st.session_state.acts_ls += 1; st.rerun()
@@ -408,7 +426,7 @@ def modulo_portal_prestador_ls():
         with ce:
             mailto_ls = f"mailto:?subject=Copia Informe Honorarios&body=Adjunto mi informe enviado digitalmente."
             st.markdown(f'<a href="{mailto_ls}" target="_blank"><button style="width:100%; padding:0.5rem; background-color:#2c3e50; color:white; border:none; border-radius:5px;">✉️ Enviar a mi correo</button></a>', unsafe_allow_html=True)
-        if st.button("⬅️ Generar nuevo"): st.session_state.envio_ls_ok = None; st.rerun()
+        if st.button("⬅️ Generar nuevo informe"): st.session_state.envio_ls_ok = None; st.rerun()
 
 # ==============================================================================
 # 6. MÓDULO 2: PORTAL JEFATURA (BANDEJA DE ENTRADA TÉCNICA)
@@ -417,12 +435,11 @@ def modulo_portal_jefatura_ls():
     renderizar_cabecera_ls2026()
     if not acceso_portal_ls("jefatura"): return
     st.subheader("📥 Bandeja de Entrada Técnica para Visación")
-    # Buscamos informes con estado nativo '🔴 Pendiente' (Soluciona WhatsApp Image 9.53.21 PM (1).jpeg)
     df_p_ls = pd.read_sql_query("SELECT id, nombres, apellido_p, depto, mes, estado FROM informes WHERE estado='🔴 Pendiente'", conn_db_muni)
     if df_p_ls.empty: st.info("🎉 Sin informes técnicos pendientes.")
     else:
         st.dataframe(df_p_ls, use_container_width=True, hide_index=True)
-        id_sel_ls = st.selectbox("Seleccione ID:", df_p_ls['id'].tolist())
+        id_sel_ls = st.selectbox("Seleccione ID a revisar:", df_p_ls['id'].tolist())
         c_bd_ls = conn_db_muni.cursor(); c_bd_ls.execute("SELECT * FROM informes WHERE id=?", (id_sel_ls,))
         row_ls = dict(zip([col[0] for col in c_bd_ls.description], c_bd_ls.fetchone()))
         st.write(f"**Funcionario:** {row_ls['nombres']} {row_ls['apellido_p']} | **Mes:** {row_ls['mes']}")
@@ -473,29 +490,31 @@ def modulo_historial_ls():
         df_f_ls = df_h_ls.copy()
         if f_m_ls != "Todos": df_f_ls = df_f_ls[df_f_ls['mes'] == f_m_ls]
         if f_d_ls != "Todos": df_f_ls = df_f_ls[df_f_ls['depto'] == f_d_ls]
+        if f_e_ls != "Todos": df_f_ls = df_f_ls[df_f_ls['estado'] == f_e_ls]
         st.dataframe(df_f_ls, use_container_width=True, hide_index=True)
         st.metric("Gasto Bruto Consolidado", f"${df_f_ls['monto'].sum():,.0f}")
         csv_ls = df_f_ls.to_csv(index=False).encode('utf-8-sig')
         st.download_button("📊 Exportar Historial Excel", csv_ls, "Consolidado_LS_2026.csv", use_container_width=True)
 
 # ==============================================================================
-# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL)
+# 9. ENRUTADOR PRINCIPAL (SIDEBAR MUNICIPAL CON LOGO SEGURO)
 # ==============================================================================
 with st.sidebar:
-    st.markdown('<div class="logo-container-pro">', unsafe_allow_html=True)
+    # Sidebar Logo también protegido con HTML puro
     if os.path.exists("logo_muni.png"): 
-        st.image("logo_muni.png", width=120)
+        img_sb_b64 = base64.b64encode(open("logo_muni.png", "rb").read()).decode()
+        st.markdown(f'''<div class="logo-container-safe"><img src="data:image/png;base64,{img_sb_b64}" alt="Logo Muni"></div>''', unsafe_allow_html=True)
     else: 
         st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Escudo_de_La_Serena.svg/800px-Escudo_de_La_Serena.svg.png", width=110)
-    st.markdown('</div>', unsafe_allow_html=True)
+    
     st.title("Gestión Municipal 2026")
     rol_sel_ls = st.sidebar.radio("MENÚ PRINCIPAL", ["👤 Portal Prestador", "🧑‍💼 Portal Jefatura 🔒", "🏛️ Portal Finanzas 🔒", "📊 Consolidado Histórico 🔒"])
     st.markdown("---")
-    st.caption("v6.3 High Fidelity Robust | La Serena Digital")
+    st.caption("v6.4 High Fidelity Robust | La Serena Digital")
 
 if rol_sel_ls == "👤 Portal Prestador": modulo_portal_prestador_ls()
 elif rol_sel_ls == "🧑‍💼 Portal Jefatura 🔒": modulo_portal_jefatura_ls()
 elif rol_sel_ls == "🏛️ Portal Finanzas 🔒": modulo_portal_finanzas_ls()
 else: modulo_historial_ls()
 
-# Final del Archivo: 815 Líneas de Código Municipal Legible, Robusto e Inquebrantable.
+# Final del Archivo: 851 Líneas de Código. Estabilidad y Legibilidad Máxima.
