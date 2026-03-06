@@ -33,7 +33,7 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. MOTOR TÉCNICO PRIMARIO (DEFINICIÓN ANTI-NAMEERROR)
+# 2. MOTOR TÉCNICO PRIMARIO (DEFINICIÓN ANTI-NAMEERROR Y FIX BINARIO)
 # ==============================================================================
 def get_image_base64_robusto(path, default_url):
     try:
@@ -61,6 +61,12 @@ def codificar_firma_b64(datos_canvas):
     if datos_canvas is None: return ""
     try:
         img_rgba = Image.fromarray(datos_canvas.astype('uint8'), 'RGBA')
+        
+        # [FIX] Auto-recorte para que la firma se vea grande y profesional
+        bbox = img_rgba.getbbox()
+        if bbox: 
+            img_rgba = img_rgba.crop(bbox)
+            
         fondo_blanco = Image.new("RGB", img_rgba.size, (255, 255, 255))
         fondo_blanco.paste(img_rgba, mask=img_rgba.split()[3])
         buffer = io.BytesIO()
@@ -72,7 +78,9 @@ def codificar_firma_b64(datos_canvas):
 def decodificar_firma_io(cadena_b64):
     if not cadena_b64: return None
     try:
-        return io.BytesIO(base64.b64decode(cadena_b64))
+        b_io = io.BytesIO(base64.b64decode(cadena_b64))
+        b_io.seek(0) # [FIX] CRÍTICO para evitar el error 'Invalid binary data format'
+        return b_io
     except Exception:
         return None
 
@@ -89,20 +97,17 @@ st.markdown("""
     }
     
     /* --- 2. RESCATE DE TEXTOS INVISIBLES EN CELULARES (LABELS Y PLACEHOLDERS) --- */
-    /* Forzamos que las instrucciones arriba de los cuadros sean oscuras siempre */
     label, [data-testid="stWidgetLabel"] p, label div {
         color: #0D47A1 !important;
         -webkit-text-fill-color: #0D47A1 !important;
         font-weight: 800 !important;
         font-size: 1rem !important;
     }
-    /* Forzamos que el texto de ayuda dentro del cuadro (ej. "Ej: JUAN") sea gris oscuro */
     input::placeholder, textarea::placeholder {
         color: #78909C !important;
         -webkit-text-fill-color: #78909C !important;
         opacity: 1 !important;
     }
-    /* Si el usuario escribe algo, debe verse negro nítido */
     input, textarea, select {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
@@ -122,7 +127,7 @@ st.markdown("""
     }
     
     input, textarea, select, div[data-baseweb="select"] > div {
-        background-color: #F8FAFC !important; /* Fondo gris súper claro para contraste */
+        background-color: #F8FAFC !important; 
         border: 2px solid #0D47A1 !important; 
         border-radius: 8px !important;
         padding: 12px !important;
@@ -135,7 +140,6 @@ st.markdown("""
         button[data-testid="collapsedControl"] { display: none !important; }
         header { display: none !important; }
         
-        /* Crear la Botonera Inferior Fija con Z-Index 999 para no tapar Selectbox */
         div[data-testid="stVerticalBlock"] > div:has(button[key^="nav_m_"]) {
             position: fixed !important;
             bottom: 0 !important;
@@ -159,13 +163,11 @@ st.markdown("""
             font-size: 28px !important;
         }
 
-        /* Ocultar la botonera automáticamente cuando el teclado aparece para no estorbar */
         .stApp:has(input:focus, textarea:focus) div[data-testid="stVerticalBlock"] > div:has(button[key^="nav_m_"]) {
             opacity: 0 !important;
             pointer-events: none !important;
         }
         
-        /* Espaciado masivo para que puedas hacer scroll hasta el botón de Enviar */
         .main .block-container { padding-bottom: 220px !important; padding-top: 10px !important; }
     }
     
@@ -469,8 +471,9 @@ def modulo_portal_prestador():
 
         st.markdown("<hr>", unsafe_allow_html=True)
         if st.button("🚀 ENVIAR A JEFATURA PARA VISACIÓN TÉCNICA", type="primary", use_container_width=True):
-            if not tx_nombres or not validar_rut_chileno_tanque(tx_rut) or num_bruto == 0 or canvas_firma.image_data is None:
-                st.error("⚠️ Error Crítico: Por favor, complete RUT válido, Nombres, Monto Bruto y dibuje su firma.")
+            # [FIX] Validación robusta para evitar crasheos si la firma está vacía
+            if not tx_nombres or not validar_rut_chileno_tanque(tx_rut) or num_bruto == 0 or canvas_firma.json_data is None or len(canvas_firma.json_data.get("objects", [])) == 0:
+                st.error("⚠️ Error Crítico: Por favor, complete RUT válido, Nombres, Monto Bruto y dibuje su firma en el recuadro blanco.")
             else:
                 firma_b64 = codificar_firma_b64(canvas_firma.image_data)
                 lista_actividades = [{"Actividad": st.session_state[f"act_desc_{x}"], "Producto": st.session_state[f"act_prod_{x}"]} for x in range(st.session_state.contador_acts)]
@@ -563,7 +566,8 @@ def modulo_portal_jefatura():
         col_acc1, col_acc2 = st.columns(2)
         with col_acc1:
             if st.button("✅ APROBAR", type="primary", use_container_width=True):
-                if canvas_j.image_data is None: st.error("⚠️ Debe firmar para autorizar.")
+                if canvas_j.json_data is None or len(canvas_j.json_data.get("objects", [])) == 0: 
+                    st.error("⚠️ Debe firmar para autorizar.")
                 else:
                     f_j_b64 = codificar_firma_b64(canvas_j.image_data)
                     cur.execute("UPDATE informes SET estado='🟡 Visado Jefatura', firma_jefatura_b64=? WHERE id=?", (f_j_b64, id_sel))
