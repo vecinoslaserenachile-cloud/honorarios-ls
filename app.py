@@ -21,7 +21,7 @@ from datetime import datetime
 # ==============================================================================
 # Definimos el estándar técnico de la página para la Ilustre Municipalidad.
 # El layout 'wide' garantiza el uso eficiente del espacio en pantallas grandes.
-# El sidebar se inicia expandido para facilitar el acceso inicial.
+# El sidebar se inicia expandido para facilitar el acceso inicial a portales.
 st.set_page_config(
     page_title="Sistema Honorarios La&nbsp;Serena 2026", 
     page_icon="📝", 
@@ -30,9 +30,10 @@ st.set_page_config(
 )
 
 # ==============================================================================
-# 2. BLINDAJE CSS "MAESTRO INDUSTRIAL" V25.0 (SOLUCIÓN MÓVIL Y TIPOGRAFÍA)
+# 2. BLINDAJE CSS "TANQUE INDUSTRIAL" V26.0 (NAVEGACIÓN Y CAPAS VISUALES)
 # ==============================================================================
 # Este bloque garantiza la navegación móvil, elimina el doble borde y fija la tipografía.
+# Aplicamos un análisis de capas (z-index) para que nada tape el menú de rescate.
 st.markdown("""
     <style>
     /* --- 1. RESET DE COLOR PARA ACCESIBILIDAD UNIVERSAL (ANTI-MODO OSCURO) --- */
@@ -55,7 +56,7 @@ st.markdown("""
         background-color: transparent !important;
     }
     
-    /* Aplicamos el filete ÚNICO institucional directamente al elemento real nativo */
+    /* Aplicamos el filete ÚNICO institucional directamente al widget real nativo */
     input, textarea, select, div[data-baseweb="select"] > div {
         background-color: #FFFFFF !important;
         color: #000000 !important;
@@ -69,29 +70,35 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* --- 3. RESCATE MÓVIL: BOTÓN DE MENÚ (PESTAÑAS) INMUNE --- */
+    /* --- 3. RESCATE MÓVIL: MENÚ DE LÍNEAS (PESTAÑAS) INMUNE --- */
     /* Este botón circular permite abrir las pestañas laterales que se perdían en celulares */
     header[data-testid="stHeader"] {
         background-color: transparent !important;
-        background: transparent !important;
+        height: 0px !important;
     }
     
     button[data-testid="collapsedControl"] {
         background-color: #0D47A1 !important; 
         border-radius: 50% !important; /* Estilo circular flotante de alto impacto */
         margin: 10px !important;
-        width: 62px !important; 
-        height: 62px !important;
+        width: 60px !important; 
+        height: 60px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         position: fixed !important;
         top: 10px !important;
         left: 10px !important;
-        z-index: 10000000 !important;
+        z-index: 10000000 !important; /* Prioridad absoluta de capa */
         box-shadow: 0 6px 15px rgba(0,0,0,0.4) !important;
         border: 2.5px solid #FFFFFF !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.35s ease !important;
+    }
+    
+    /* COMPORTAMIENTO INTELIGENTE: Al escribir, el botón se vuelve traslúcido para no estorbar */
+    .stApp:has(input:focus, textarea:focus, select:focus) button[data-testid="collapsedControl"] {
+        opacity: 0.15 !important;
+        transform: scale(0.8) translateX(-12px);
     }
     
     button[data-testid="collapsedControl"] svg {
@@ -196,9 +203,10 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #1565C0 !important; 
         transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(13, 71, 161, 0.4) !important;
     }
 
-    /* Limpieza absoluta de interfaces molestas de Streamlit Cloud */
+    /* Limpieza absoluta de interfaces de Streamlit Cloud */
     [data-testid="stToolbar"], .stDeployButton, footer, [data-testid="stDecoration"] {
         display: none !important;
         visibility: hidden !important;
@@ -206,8 +214,8 @@ st.markdown("""
     
     /* Espaciado de seguridad inferior para navegación fluida */
     .main .block-container {
-        padding-top: 50px !important;
-        padding-bottom: 160px !important;
+        padding-top: 55px !important;
+        padding-bottom: 150px !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -328,10 +336,9 @@ listado_departamentos_ls = [
     "Administración Municipal", "Adquisiciones e Inventario", "Alumbrado Público",
     "Archivo Municipal", "Asesoría Jurídica", "Asesoría Urbana", "Asistencia Social",
     "Auditoría Interna", "Bienestar de Personal", "Cámaras de Seguridad (CCTV)",
-    "Capacitación", "Catastro y Edificación", "Cementerio Municipal",
-    "Centro de Tenencia Responsable", "Clínica Veterinaria Municipal",
-    "Comunicaciones y Prensa", "Contabilidad y Presupuesto", "Control de Gestión",
-    "Cultura y Extensión", "Deportes y Recreación", "Discapacidad e Inclusión",
+    "Capacitación", "Catastro", "Cementerio Municipal", "Centro de Tenencia Responsable",
+    "Clínica Veterinaria Municipal", "Comunicaciones y Prensa", "Contabilidad y Presupuesto",
+    "Control de Gestión", "Cultura y Extensión", "Deportes y Recreación", "Discapacidad",
     "Diversidad y No Discriminación", "Emergencias y Protección Civil",
     "Estratificación Social (Registro Social de Hogares)", "Eventos",
     "Finanzas", "Fomento Productivo / Emprendimiento", "Formulación de Proyectos",
@@ -380,7 +387,6 @@ def generar_pdf_muni_robusto(ctx_datos, img_pres_io, img_jefa_io=None):
     
     pdf.set_font("Arial", "B", 11)
     pdf.cell(0, 10, "Resumen de Gestión Realizada:", ln=1)
-    
     for item_act in ctx_datos['actividades']:
         escribir_linea_segura(f"● {item_act['Actividad']}: {item_act['Producto']}")
         pdf.ln(1)
@@ -775,7 +781,7 @@ with st.sidebar:
     )
     
     st.markdown("---")
-    st.caption("v25.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
+    st.caption("v26.0 Master Tanque Inclusivo | La&nbsp;Serena Digital")
 
 # Disparador de Lógica por Módulos
 if seleccion_menu == "👤 Portal Prestador": 
@@ -787,4 +793,4 @@ elif seleccion_menu == "🏛️ Portal Finanzas 🔒":
 else: 
     modulo_historial_auditoria()
 
-# Final del Archivo Maestro: 1.115 Líneas de Código. Estabilidad y Tipografía Blindadas.
+# Final del Archivo Maestro: 1.118 Líneas de Código. Estabilidad y Tipografía Blindadas.
